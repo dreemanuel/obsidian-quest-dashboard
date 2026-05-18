@@ -49,3 +49,40 @@ describe('ObsidianAdapter — listQuests', () => {
     expect(quests[0].deepLink).toContain('TestVault');
   });
 });
+
+describe('ObsidianAdapter — markComplete', () => {
+  test('rewrites - [ ] to - [x] with today date', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const quests = await adapter.listQuests();
+    const target = quests.find(q => q.title === 'First today task');
+    await adapter.markComplete(target.sourceRef);
+    const updated = await fs.readFile(workingFile, 'utf8');
+    expect(updated).toContain('- [x] First today task ✅');
+  });
+
+  test('throws ConflictError when line title no longer matches', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const quests = await adapter.listQuests();
+    const target = quests.find(q => q.title === 'First today task');
+    // Edit the file externally to change the title
+    let raw = await fs.readFile(workingFile, 'utf8');
+    raw = raw.replace('First today task', 'EDITED title');
+    await fs.writeFile(workingFile, raw);
+    await expect(adapter.markComplete(target.sourceRef)).rejects.toMatchObject({ code: 'CONFLICT' });
+  });
+});
+
+describe('ObsidianAdapter — healthCheck', () => {
+  test('returns ok when file is readable + writable', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const result = await adapter.healthCheck();
+    expect(result.status).toBe('ok');
+  });
+
+  test('returns error when file missing', async () => {
+    const adapter = new ObsidianAdapter({ file: path.join(tmpDir, 'missing.md'), vault: 'TestVault' });
+    const result = await adapter.healthCheck();
+    expect(result.status).toBe('error');
+    expect(result.lastError).toBeDefined();
+  });
+});
