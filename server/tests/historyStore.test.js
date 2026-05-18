@@ -41,3 +41,57 @@ describe('historyStore — append + read', () => {
     expect(await store.readAll()).toEqual([]);
   });
 });
+
+describe('historyStore — aggregations', () => {
+  test('sumXpInWindow filters by date range', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendBatch([
+      { questId: 'a', xp: 10, ts: '2026-05-18T10:00:00Z', source: 'o', title: 'a' },
+      { questId: 'b', xp: 20, ts: '2026-05-17T10:00:00Z', source: 'o', title: 'b' },
+      { questId: 'c', xp: 30, ts: '2026-05-18T15:00:00Z', source: 'o', title: 'c' },
+    ]);
+    const total = await store.sumXpInWindow(
+      new Date('2026-05-18T00:00:00Z'),
+      new Date('2026-05-18T23:59:59Z')
+    );
+    expect(total).toBe(40);
+  });
+
+  test('rollingAverage computes per-day mean over N days', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendBatch([
+      { questId: '1', xp: 50, ts: '2026-05-11T10:00:00Z', source: 'o', title: 'a' },
+      { questId: '2', xp: 60, ts: '2026-05-12T10:00:00Z', source: 'o', title: 'b' },
+      { questId: '3', xp: 40, ts: '2026-05-13T10:00:00Z', source: 'o', title: 'c' },
+    ]);
+    const avg = await store.rollingDailyAverage(new Date('2026-05-13T23:59:59Z'), 7);
+    expect(avg).toBeCloseTo(150 / 7, 1);
+  });
+
+  test('isDuplicate detects same questId on same date', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendEvent({ questId: 'q1', xp: 10, ts: '2026-05-18T10:00:00Z', source: 'o', title: 't' });
+    expect(await store.isDuplicate('q1', new Date('2026-05-18T15:00:00Z'))).toBe(true);
+    expect(await store.isDuplicate('q1', new Date('2026-05-19T10:00:00Z'))).toBe(false);
+    expect(await store.isDuplicate('q2', new Date('2026-05-18T10:00:00Z'))).toBe(false);
+  });
+
+  test('streakDays counts consecutive days ending at given date with xp > 0', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendBatch([
+      { questId: '1', xp: 10, ts: '2026-05-16T10:00:00Z', source: 'o', title: 'a' },
+      { questId: '2', xp: 20, ts: '2026-05-17T10:00:00Z', source: 'o', title: 'b' },
+      { questId: '3', xp: 30, ts: '2026-05-18T10:00:00Z', source: 'o', title: 'c' },
+    ]);
+    expect(await store.streakDays(new Date('2026-05-18T23:00:00Z'))).toBe(3);
+  });
+
+  test('streakDays breaks on zero day', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendBatch([
+      { questId: '1', xp: 10, ts: '2026-05-16T10:00:00Z', source: 'o', title: 'a' },
+      { questId: '3', xp: 30, ts: '2026-05-18T10:00:00Z', source: 'o', title: 'c' },
+    ]);
+    expect(await store.streakDays(new Date('2026-05-18T23:00:00Z'))).toBe(1);
+  });
+});
