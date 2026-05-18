@@ -69,3 +69,27 @@ describe('aggregator — collectAll', () => {
     expect(badMeta).toBeDefined();
   });
 });
+
+describe('aggregator — completion diff', () => {
+  test('appends XP event when quest transitions to completed', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const history = createHistoryStore(historyFile);
+    const agg = createAggregator([adapter], history);
+
+    // First call: no diff
+    await agg.collectAll();
+    const eventsAfterFirst = await history.readAll();
+    expect(eventsAfterFirst.length).toBe(0);
+
+    // Externally mark a quest complete
+    let raw = await fs.readFile(workingFile, 'utf8');
+    raw = raw.replace('- [ ] First today task', '- [x] First today task ✅ 2026-05-18');
+    await fs.writeFile(workingFile, raw);
+
+    // Second call: diff detected, event appended
+    await agg.collectAll();
+    const eventsAfterSecond = await history.readAll();
+    expect(eventsAfterSecond.length).toBe(1);
+    expect(eventsAfterSecond[0].title).toBe('First today task');
+  });
+});
