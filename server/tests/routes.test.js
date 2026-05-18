@@ -11,6 +11,7 @@ import { createHistoryStore } from '../core/historyStore.js';
 import { createQuestsRoute } from '../routes/quests.js';
 import { createActionsRoute } from '../routes/actions.js';
 import { createHistoryRoute } from '../routes/history.js';
+import { createHealthRoute } from '../routes/health.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -93,6 +94,21 @@ describe('GET /api/history', () => {
       expect(res.body).toHaveProperty('week.xp');
       expect(res.body).toHaveProperty('streak');
       expect(res.body).toHaveProperty('rollingAvg7Day');
+    } finally {
+      await fs.rm(built.tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('GET /api/health', () => {
+  test('returns ok status when source healthy', async () => {
+    const built = await buildApp();
+    built.app.use('/api/health', createHealthRoute({ adapters: [built.adapter] }));
+    try {
+      const res = await request(built.app).get('/api/health');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('ok');
+      expect(res.body.sources[0].id).toBe('obsidian');
     } finally {
       await fs.rm(built.tmpDir, { recursive: true, force: true });
     }
