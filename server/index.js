@@ -9,6 +9,7 @@ import { createQuestsRoute } from './routes/quests.js';
 import { createActionsRoute } from './routes/actions.js';
 import { createHistoryRoute } from './routes/history.js';
 import { createHealthRoute } from './routes/health.js';
+import { backfillIfNeeded } from './core/backfill.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +33,11 @@ async function main() {
   const historyPath = path.join(PROJECT_ROOT, 'data', 'xp-history.jsonl');
   const history = createHistoryStore(historyPath);
   const aggregator = createAggregator(adapters, history);
+
+  const dataDir = path.join(PROJECT_ROOT, 'data');
+  for (const adapter of adapters) {
+    await backfillIfNeeded(adapter, history, dataDir);
+  }
 
   const app = express();
   app.use(express.json());
