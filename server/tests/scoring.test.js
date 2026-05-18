@@ -46,3 +46,45 @@ describe('computeXp — modifiers stack additively', () => {
     expect(xp).toBe(45);
   });
 });
+
+describe('computeXp — #xpN override', () => {
+  test('#xp25 overrides auto rules', () => {
+    const { xp, xpSource } = computeXp({
+      title: 'Foo #xp25',
+      rawLane: 'TO DO - BACKBURNER',
+    });
+    expect(xp).toBe(25);
+    expect(xpSource).toBe('tag');
+  });
+  test('#xp tag prevents modifier stacking', () => {
+    const { xp } = computeXp({
+      title: '🔥 ⭐ Foo #xp10',
+      rawLane: '🚀 JOB SEARCH',
+    });
+    expect(xp).toBe(10);
+  });
+  test('xp can be 0', () => {
+    expect(computeXp({ title: 'Ignore #xp0', rawLane: 'X' }).xp).toBe(0);
+  });
+});
+
+describe('deriveFlags', () => {
+  test('extracts all flags', () => {
+    expect(deriveFlags('🔥 ⭐ 🔺 Foo')).toEqual(['urgent', 'starred', 'critical']);
+  });
+  test('returns empty array for plain title', () => {
+    expect(deriveFlags('plain text')).toEqual([]);
+  });
+});
+
+describe('stripXpTag', () => {
+  test('removes #xpN tag from title', () => {
+    expect(stripXpTag('Apply to Vercel #xp25')).toBe('Apply to Vercel');
+  });
+  test('returns title unchanged when no tag', () => {
+    expect(stripXpTag('Apply to Vercel')).toBe('Apply to Vercel');
+  });
+  test('collapses extra whitespace from removal', () => {
+    expect(stripXpTag('Apply #xp25 to Vercel')).toBe('Apply to Vercel');
+  });
+});
