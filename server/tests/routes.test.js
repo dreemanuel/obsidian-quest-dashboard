@@ -10,6 +10,7 @@ import { createAggregator } from '../core/aggregator.js';
 import { createHistoryStore } from '../core/historyStore.js';
 import { createQuestsRoute } from '../routes/quests.js';
 import { createActionsRoute } from '../routes/actions.js';
+import { createHistoryRoute } from '../routes/history.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -77,6 +78,23 @@ describe('POST /api/quests/:id/complete', () => {
       expect(res.body.error).toBe('not_found');
     } finally {
       await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('GET /api/history', () => {
+  test('returns today/week sums + streak', async () => {
+    const built = await buildApp();
+    built.app.use('/api/history', createHistoryRoute({ history: built.history, targets: { daily: 50, weekly: 250 } }));
+    try {
+      const res = await request(built.app).get('/api/history');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('today.xp');
+      expect(res.body).toHaveProperty('week.xp');
+      expect(res.body).toHaveProperty('streak');
+      expect(res.body).toHaveProperty('rollingAvg7Day');
+    } finally {
+      await fs.rm(built.tmpDir, { recursive: true, force: true });
     }
   });
 });
