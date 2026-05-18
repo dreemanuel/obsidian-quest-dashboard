@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parseBoard } from '../parsers/kanbanMarkdown.js';
+import { parseBoard, markLineComplete, titleMatches } from '../parsers/kanbanMarkdown.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,5 +58,36 @@ describe('parseBoard — subtasks', () => {
     const done = dev.tasks.find(t => t.title === 'Completed task');
     expect(done.completed).toBe(true);
     expect(done.completedAt).toBe('2026-05-15T00:00:00Z');
+  });
+});
+
+describe('markLineComplete', () => {
+  test('converts - [ ] to - [x] and appends date', () => {
+    const line = '- [ ] Apply to Vercel';
+    const updated = markLineComplete(line, '2026-05-18');
+    expect(updated).toBe('- [x] Apply to Vercel ✅ 2026-05-18');
+  });
+
+  test('preserves leading indentation', () => {
+    const line = '\t- [ ] Subtask';
+    const updated = markLineComplete(line, '2026-05-18');
+    expect(updated).toBe('\t- [x] Subtask ✅ 2026-05-18');
+  });
+
+  test('throws on already completed', () => {
+    expect(() => markLineComplete('- [x] Done', '2026-05-18')).toThrow('ALREADY_COMPLETE');
+  });
+
+  test('throws on non-task line', () => {
+    expect(() => markLineComplete('not a task', '2026-05-18')).toThrow('NOT_A_TASK');
+  });
+});
+
+describe('titleMatches', () => {
+  test('matches when line title equals expected', () => {
+    expect(titleMatches('- [ ] Apply to Vercel', 'Apply to Vercel')).toBe(true);
+  });
+  test('does not match different title', () => {
+    expect(titleMatches('- [ ] Apply to Vercel', 'Apply to Netlify')).toBe(false);
   });
 });

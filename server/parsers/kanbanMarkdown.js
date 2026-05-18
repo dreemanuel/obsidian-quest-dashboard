@@ -54,3 +54,27 @@ export function parseBoard(raw) {
 
   return { lanes };
 }
+
+export function markLineComplete(line, dateStr) {
+  const match = line.match(TASK_LINE_RE);
+  if (!match) {
+    const err = new Error('NOT_A_TASK');
+    err.code = 'NOT_A_TASK';
+    throw err;
+  }
+  const [, indent, mark, body] = match;
+  if (mark === 'x') {
+    const err = new Error('ALREADY_COMPLETE');
+    err.code = 'ALREADY_COMPLETE';
+    throw err;
+  }
+  const cleanBody = body.replace(COMPLETION_DATE_RE, '').trim();
+  return `${indent}- [x] ${cleanBody} ✅ ${dateStr}`;
+}
+
+export function titleMatches(line, expectedTitle) {
+  const match = line.match(TASK_LINE_RE);
+  if (!match) return false;
+  const body = match[3].replace(COMPLETION_DATE_RE, '').trim();
+  return body === expectedTitle;
+}
