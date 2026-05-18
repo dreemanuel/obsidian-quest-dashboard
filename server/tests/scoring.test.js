@@ -20,3 +20,29 @@ describe('computeXp — base XP by lane', () => {
     });
   }
 });
+
+describe('computeXp — modifiers stack additively', () => {
+  test('🔥 adds +10', () => {
+    expect(computeXp({ title: '🔥 Foo', rawLane: 'DEV - PERSONAL' }).xp).toBe(25);
+  });
+  test('⭐ adds +5', () => {
+    expect(computeXp({ title: '⭐ Foo', rawLane: 'DEV - PERSONAL' }).xp).toBe(20);
+  });
+  test('🔺 adds +10', () => {
+    expect(computeXp({ title: '🔺 Foo', rawLane: 'DEV - PERSONAL' }).xp).toBe(25);
+  });
+  test('URGENT adds +5', () => {
+    expect(computeXp({ title: 'URGENT Foo', rawLane: 'DEV - PERSONAL' }).xp).toBe(20);
+  });
+  test('TODAY adds +5', () => {
+    expect(computeXp({ title: 'TODAY Foo', rawLane: 'DEV - PERSONAL' }).xp).toBe(20);
+  });
+  test('multiple modifiers stack', () => {
+    // base 25 (JOB SEARCH) + 10 (🔥) + 5 (⭐) + 5 (URGENT) = 45
+    const { xp } = computeXp({
+      title: '🔥 ⭐ URGENT Apply to Vercel',
+      rawLane: '🚀 JOB SEARCH - SAAS COMPANIES',
+    });
+    expect(xp).toBe(45);
+  });
+});
