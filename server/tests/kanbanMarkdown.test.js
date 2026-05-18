@@ -37,3 +37,26 @@ describe('parseBoard', () => {
     expect(today.tasks[0].line).toBeGreaterThan(0);
   });
 });
+
+describe('parseBoard — subtasks', () => {
+  test('nests subtasks under parent task', async () => {
+    const raw = await fs.readFile(FIXTURE, 'utf8');
+    const board = parseBoard(raw);
+    const dev = board.lanes.find(l => l.name === 'DEV - PERSONAL');
+    const parent = dev.tasks.find(t => t.title === 'Personal task');
+    expect(parent.objectives).toHaveLength(2);
+    expect(parent.objectives[0].title).toBe('Subtask one');
+    expect(parent.objectives[0].completed).toBe(false);
+    expect(parent.objectives[1].title).toBe('Subtask two');
+    expect(parent.objectives[1].completed).toBe(true);
+  });
+
+  test('captures completion date on completed top-level task', async () => {
+    const raw = await fs.readFile(FIXTURE, 'utf8');
+    const board = parseBoard(raw);
+    const dev = board.lanes.find(l => l.name === 'DEV - PERSONAL');
+    const done = dev.tasks.find(t => t.title === 'Completed task');
+    expect(done.completed).toBe(true);
+    expect(done.completedAt).toBe('2026-05-15T00:00:00Z');
+  });
+});

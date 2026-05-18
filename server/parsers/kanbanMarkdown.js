@@ -7,6 +7,7 @@ export function parseBoard(raw) {
   const lines = raw.split('\n');
   const lanes = [];
   let currentLane = null;
+  let lastTopLevelTask = null;
   let inSettings = false;
 
   for (let i = 0; i < lines.length; i++) {
@@ -21,6 +22,7 @@ export function parseBoard(raw) {
     const laneMatch = line.match(LANE_HEADER_RE);
     if (laneMatch) {
       currentLane = { name: laneMatch[1].trim(), tasks: [] };
+      lastTopLevelTask = null;
       lanes.push(currentLane);
       continue;
     }
@@ -28,20 +30,25 @@ export function parseBoard(raw) {
     if (!currentLane) continue;
 
     const taskMatch = line.match(TASK_LINE_RE);
-    if (taskMatch) {
-      const [, indent, mark, body] = taskMatch;
-      // For Task 6.1 we only handle top-level (no indentation)
-      if (indent.length > 0) continue;
-      const completed = mark === 'x';
-      const dateMatch = body.match(COMPLETION_DATE_RE);
-      currentLane.tasks.push({
-        title: body.replace(COMPLETION_DATE_RE, '').trim(),
-        rawTitle: body,
-        completed,
-        completedAt: dateMatch ? `${dateMatch[1]}T00:00:00Z` : null,
-        line: i,
-        objectives: [],
-      });
+    if (!taskMatch) continue;
+
+    const [, indent, mark, body] = taskMatch;
+    const completed = mark === 'x';
+    const dateMatch = body.match(COMPLETION_DATE_RE);
+    const task = {
+      title: body.replace(COMPLETION_DATE_RE, '').trim(),
+      rawTitle: body,
+      completed,
+      completedAt: dateMatch ? `${dateMatch[1]}T00:00:00Z` : null,
+      line: i,
+      objectives: [],
+    };
+
+    if (indent.length === 0) {
+      currentLane.tasks.push(task);
+      lastTopLevelTask = task;
+    } else if (lastTopLevelTask) {
+      lastTopLevelTask.objectives.push(task);
     }
   }
 
