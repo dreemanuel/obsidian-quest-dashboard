@@ -129,11 +129,19 @@ Captured the full project arc to date in `DEVLOG.md` (this file) — chronologic
 
 Added `CLAUDE.md` at the project root codifying the rule "update DEVLOG.md after every non-cosmetic commit". Sister memory saved at `~/.claude/projects/.../memory/feedback_devlog_after_commit.md` so the same instruction loads at session start. Noted the upgrade path (PostToolUse hook via the `update-config` skill) for hard enforcement if the soft approach drifts.
 
-### GitHub remote created (private, pending sanitization)
+### GitHub remote created → sanitized → public
 
-Created **https://github.com/dreemanuel/obsidian-quest-dashboard** via `gh repo create` — **private** for now while personal content gets scrubbed. Both `main` (2 commits) and `feature/v1-implementation` (57 commits) pushed. SSH protocol, default branch `main`.
+Created **https://github.com/dreemanuel/obsidian-quest-dashboard** via `gh repo create` — initially **private** while a sanitization pass ran. Both `main` (the initial 2 docs commits) and `feature/v1-implementation` (the full development history) pushed. SSH protocol, default branch `main`.
 
-Plan: stay private during the sanitization pass, then flip to public so others can fork-and-adapt the dashboard for their own kanban file. Sanitization scope: genericize hardcoded lane defaults in `scoring.js` / `categoryMap.js`, replace personal file paths and project names in all design docs with placeholders, and revise DEVLOG entries that referenced specific personal context.
+A dedicated `public-prep` branch hosted the sanitization work — 5 commits:
+
+- `11d6e00` — genericized lane defaults in `scoring.js` + `categoryMap.js` (generic `/^DEV - /` rule replaces hardcoded project names; behavior preserved); tests updated
+- `278f320` — `config/sources.example.json` gets placeholder path + vault name
+- `f679500` — bulk sweep across all design docs replacing paths, vault name, project names, and personal narrative references
+- `15527ba` — DEVLOG specific sanitizations (`ObsMain` path, specific new-lane name, backup filename)
+- `9d05489` — README expanded with a "What it looks like" overview, an "Adapting the lane rules to YOUR kanban" section, the modifier table, and `#xpN` override docs
+
+Verified: 95 server + 33 client tests passing, production build clean, zero remaining personal-term mentions in tracked files. MIT LICENSE added. `public-prep` merged into `main` (fast-forward) and the repo flipped to **public**.
 
 ### Backend port collision (`000fb7f`)
 

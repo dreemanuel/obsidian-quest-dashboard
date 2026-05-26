@@ -145,4 +145,4 @@ See [`docs/PRD.md`](docs/PRD.md) for full roadmap detail.
 
 ## License
 
-This project is released under your choice of MIT or Apache-2.0. Pick whichever you prefer when forking. (No LICENSE file is bundled yet — add one with your name when you fork.)
+MIT — see [LICENSE](LICENSE).
