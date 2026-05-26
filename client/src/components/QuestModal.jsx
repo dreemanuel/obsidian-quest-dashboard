@@ -1,7 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { XpBadge } from './XpBadge.jsx';
+import { ObjectivesBar } from './ObjectivesBar.jsx';
 
-export function QuestModal({ quest, onClose, onComplete }) {
+export function QuestModal({ quest, onClose, onComplete, onObjectiveComplete }) {
+  const [liveObjectives, setLiveObjectives] = useState(quest.objectives || []);
+
+  useEffect(() => {
+    setLiveObjectives(quest.objectives || []);
+  }, [quest.objectives]);
+
   useEffect(() => {
     const handler = (e) => {
       if (e.key === 'Escape') onClose();
@@ -9,6 +16,19 @@ export function QuestModal({ quest, onClose, onComplete }) {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
+
+  const liveDone = useMemo(() => liveObjectives.filter(o => o.completed).length, [liveObjectives]);
+  const liveTotal = liveObjectives.length;
+  const hasObjectives = liveTotal > 0;
+  const allDone = hasObjectives && liveDone === liveTotal;
+  const parentButtonDisabled = hasObjectives && !allDone;
+
+  const handleObjectiveClick = (obj) => {
+    setLiveObjectives(prev =>
+      prev.map(o => (o.id === obj.id ? { ...o, completed: true } : o))
+    );
+    onObjectiveComplete(obj);
+  };
 
   return (
     <div
@@ -38,16 +58,28 @@ export function QuestModal({ quest, onClose, onComplete }) {
           <XpBadge value={quest.xp} xpSource={quest.xpSource} />
         </div>
 
-        {quest.objectives?.length > 0 && (
+        {hasObjectives && (
           <div className="my-4">
             <p className="text-xs uppercase tracking-widest opacity-70 mb-2">Objectives</p>
-            <ul className="space-y-1">
-              {quest.objectives.map(obj => (
-                <li key={obj.id} className="text-sm flex items-center gap-2">
-                  <span aria-hidden>{obj.completed ? '☑' : '☐'}</span>
-                  <span className={obj.completed ? 'line-through opacity-60' : ''}>
-                    {obj.title}
-                  </span>
+            <ObjectivesBar done={liveDone} total={liveTotal} />
+            <ul className="space-y-1 mt-3">
+              {liveObjectives.map(obj => (
+                <li key={obj.id} className="text-sm">
+                  {obj.completed ? (
+                    <span className="flex items-center gap-2">
+                      <span aria-hidden>☑</span>
+                      <span className="line-through opacity-60">{obj.title}</span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleObjectiveClick(obj)}
+                      className="flex items-center gap-2 text-left w-full hover:text-hud-success"
+                    >
+                      <span aria-hidden>☐</span>
+                      <span>{obj.title}</span>
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -61,8 +93,13 @@ export function QuestModal({ quest, onClose, onComplete }) {
         <div className="flex gap-2 mt-4">
           <button
             type="button"
-            onClick={() => onComplete(quest)}
-            className="flex-1 px-3 py-2 bg-hud-accent text-hud-bg font-bold uppercase tracking-widest text-xs hover:brightness-110"
+            onClick={() => !parentButtonDisabled && onComplete(quest)}
+            disabled={parentButtonDisabled}
+            className={`flex-1 px-3 py-2 font-bold uppercase tracking-widest text-xs ${
+              parentButtonDisabled
+                ? 'bg-hud-border text-hud-bg/50 cursor-not-allowed'
+                : 'bg-hud-accent text-hud-bg hover:brightness-110'
+            }`}
           >
             ▣ Mark Complete
           </button>
@@ -75,6 +112,12 @@ export function QuestModal({ quest, onClose, onComplete }) {
             ↗ Open in Obsidian
           </a>
         </div>
+
+        {parentButtonDisabled && (
+          <p className="mt-2 text-[10px] uppercase tracking-widest opacity-70 text-center">
+            Complete all objectives first
+          </p>
+        )}
       </div>
     </div>
   );
