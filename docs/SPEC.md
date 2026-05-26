@@ -4,6 +4,8 @@
 **Date**: 2026-05-18
 **Companion docs**: [PRD.md](PRD.md), [ARCHITECTURE.md](ARCHITECTURE.md), [USER-STORIES.md](USER-STORIES.md)
 
+**See also**: [SPEC-v1.1-subtasks.md](SPEC-v1.1-subtasks.md) for the v1.1 amendments (interactive subtasks).
+
 This document defines precise feature behavior, data shapes, scoring rules, and the HTTP API. It is the contract the implementation must satisfy.
 
 ---

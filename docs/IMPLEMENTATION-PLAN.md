@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **v1.1 follow-on**: See [IMPLEMENTATION-PLAN-v1.1-subtasks.md](IMPLEMENTATION-PLAN-v1.1-subtasks.md) for interactive-subtask work that ships on top of v1.
+
 **Goal:** Build a v1 MVP of the Quest Dashboard — a local-only web app that reads tasks from an Obsidian kanban file, presents them as cyberpunk-HUD-styled "quests" with XP scoring + progress bars, and supports bidirectional sync (mark-complete writes back to the kanban).
 
 **Architecture:** Node + Express backend with a pluggable `SyncAdapter` interface (only `ObsidianAdapter` implemented in v1). Vite + React + Tailwind frontend, communicating via JSON over HTTP. Flat-file storage (JSON config, JSONL XP history). See [ARCHITECTURE.md](ARCHITECTURE.md) for full design.
