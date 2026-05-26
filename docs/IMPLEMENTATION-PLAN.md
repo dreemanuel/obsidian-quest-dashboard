@@ -530,9 +530,9 @@ describe('computeXp — base XP by lane', () => {
   const cases = [
     { lane: 'TO DO - TODAY !', title: 'foo', expected: 30 },
     { lane: '🔥 JOB SEARCH - THIS WEEK', title: 'foo', expected: 25 },
-    { lane: '📬 JOB SEARCH - SUPPORT ADVENTURE COMPETITORS', title: 'foo', expected: 25 },
-    { lane: 'DEV - VENERA 🔺', title: 'foo', expected: 20 },
-    { lane: 'DEV - CODAIC', title: 'foo', expected: 20 },
+    { lane: '📬 JOB SEARCH - EXAMPLE COMPANY COMPETITORS', title: 'foo', expected: 25 },
+    { lane: 'DEV - CLIENT-A 🔺', title: 'foo', expected: 20 },
+    { lane: 'DEV - CLIENT-B', title: 'foo', expected: 20 },
     { lane: 'DEV - PERSONAL', title: 'foo', expected: 15 },
     { lane: 'TO DO - BACKBURNER', title: 'foo', expected: 5 },
     { lane: 'Some Other Lane', title: 'foo', expected: 10 },
@@ -563,7 +563,7 @@ Create `server/core/scoring.js`:
 const BASE_XP_RULES = [
   { match: (lane) => lane === 'TO DO - TODAY !', xp: 30 },
   { match: (lane) => /JOB SEARCH/i.test(lane), xp: 25 },
-  { match: (lane) => lane === 'DEV - VENERA 🔺' || lane === 'DEV - CODAIC', xp: 20 },
+  { match: (lane) => lane === 'DEV - CLIENT-A 🔺' || lane === 'DEV - CLIENT-B', xp: 20 },
   { match: (lane) => lane === 'DEV - PERSONAL', xp: 15 },
   { match: (lane) => lane === 'TO DO - BACKBURNER', xp: 5 },
 ];
@@ -763,10 +763,10 @@ describe('mapCategory — default rules', () => {
   const cases = [
     { lane: 'TO DO - TODAY !', expected: { category: 'Daily Quests', featured: true, hidden: false } },
     { lane: '🔥 JOB SEARCH - THIS WEEK', expected: { category: 'Job Hunt', featured: false, hidden: false } },
-    { lane: '📬 JOB SEARCH - SUPPORT ADVENTURE COMPETITORS', expected: { category: 'Job Hunt', featured: false, hidden: false } },
+    { lane: '📬 JOB SEARCH - EXAMPLE COMPANY COMPETITORS', expected: { category: 'Job Hunt', featured: false, hidden: false } },
     { lane: 'DEV - PERSONAL', expected: { category: 'Personal Dev', featured: false, hidden: false } },
-    { lane: 'DEV - CODAIC', expected: { category: 'Codaic', featured: false, hidden: false } },
-    { lane: 'DEV - VENERA 🔺', expected: { category: 'Venera', featured: false, hidden: false } },
+    { lane: 'DEV - CLIENT-B', expected: { category: 'Project B', featured: false, hidden: false } },
+    { lane: 'DEV - CLIENT-A 🔺', expected: { category: 'Project A', featured: false, hidden: false } },
     { lane: 'TO DO - BACKBURNER', expected: { category: 'Side Quests', featured: false, hidden: false } },
     { lane: 'DONE - REVIEW', expected: { hidden: true } },
     { lane: 'Archive', expected: { hidden: true } },
@@ -802,8 +802,8 @@ export const DEFAULT_RULES = [
   { test: (lane) => /^DEV - (.+)/.test(lane), map: (lane) => {
       const suffix = lane.match(/^DEV - (.+)/)[1].replace(/🔺/g, '').trim();
       const name = suffix === 'PERSONAL' ? 'Personal Dev' :
-                   suffix === 'CODAIC' ? 'Codaic' :
-                   suffix === 'VENERA' ? 'Venera' :
+                   suffix === 'CLIENT-B' ? 'Project B' :
+                   suffix === 'CLIENT-A' ? 'Project A' :
                    suffix;
       return { category: name };
     }
@@ -2153,7 +2153,7 @@ export function createAggregator(adapters, historyStore) {
   return { collectAll };
 }
 
-const CATEGORY_ORDER = ['Daily Quests', 'Job Hunt', 'Personal Dev', 'Codaic', 'Venera', 'Side Quests'];
+const CATEGORY_ORDER = ['Daily Quests', 'Job Hunt', 'Personal Dev', 'Project B', 'Project A', 'Side Quests'];
 
 function enrichQuest(q) {
   const mapping = mapCategory(q.rawLane);
@@ -2763,8 +2763,8 @@ async function readJsonOrDefault(filePath, defaultValue) {
       "id": "obsidian",
       "adapter": "ObsidianAdapter",
       "config": {
-        "file": "/home/andre/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md",
-        "vault": "ObsMain"
+        "file": "/absolute/path/to/your/vault/Tasks/your-board.md",
+        "vault": "YourVaultName"
       },
       "pollIntervalSec": 60
     }
@@ -4343,8 +4343,8 @@ Edit `config/sources.json` to point to:
       "id": "obsidian",
       "adapter": "ObsidianAdapter",
       "config": {
-        "file": "/home/andre/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md",
-        "vault": "ObsMain"
+        "file": "/absolute/path/to/your/vault/Tasks/your-board.md",
+        "vault": "YourVaultName"
       },
       "pollIntervalSec": 60
     }
@@ -4355,8 +4355,8 @@ Edit `config/sources.json` to point to:
 - [ ] **Step 2: Make a backup of the real kanban (CRITICAL before first write test)**
 
 ```bash
-cp "/home/andre/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md" \
-   "/home/andre/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md.bak.pre-qd-$(date +%Y%m%d-%H%M%S)"
+cp "/absolute/path/to/your/vault/Tasks/your-board.md" \
+   "/absolute/path/to/your/vault/Tasks/your-board.md.bak.pre-qd-$(date +%Y%m%d-%H%M%S)"
 ```
 
 - [ ] **Step 3: Run dev mode**
@@ -4373,7 +4373,7 @@ Expected:
 
 Verify:
 - Header HUD renders with daily/weekly bars
-- Categories appear: Daily Quests, Job Hunt, Personal Dev, Codaic, Venera, Side Quests
+- Categories appear: Daily Quests, Job Hunt, Personal Dev, Project B, Project A, Side Quests
 - "DONE - REVIEW" and "Archive" quests are NOT visible
 - Quest cards show XP badges + flags
 - Clicking a card opens the modal
@@ -4445,7 +4445,7 @@ npm start
 ## Features (v1)
 
 - Reads tasks from an Obsidian kanban-plugin board
-- Quests categorized (Daily, Job Hunt, Personal Dev, Codaic, Venera, Side Quests)
+- Quests categorized (Daily, Job Hunt, Personal Dev, Project B, Project A, Side Quests)
 - Auto XP scoring + `#xpN` tag override
 - Cyberpunk HUD UI with daily/weekly progress bars
 - Bidirectional sync: "Mark Complete" writes back to the kanban

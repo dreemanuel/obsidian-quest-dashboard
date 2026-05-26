@@ -3,13 +3,13 @@
 **Version**: 1.0 (v1 MVP scope)
 **Date**: 2026-05-18
 **Status**: Approved (brainstorm complete, pending implementation plan)
-**Owner**: Andre
+**Owner**: maintainer
 
 ---
 
 ## 1. Problem Statement
 
-Andre's tasks live in multiple places:
+A user's tasks live in multiple places:
 - An Obsidian kanban board (`& DAILY TO DO.md`) — the primary planning surface, ~14 lanes, ~150 active tasks at any time
 - Google Tasks — used for quick capture from a phone home-screen widget
 - Google Calendar — events that compete for the same time/attention as tasks
@@ -32,7 +32,7 @@ A single browser-based "Quest Dashboard" that:
 
 ## 3. Target User
 
-A single user: Andre. This is a personal productivity tool, not a multi-user product. Design decisions optimize for one person's workflow and existing data structures (specifically, the existing Obsidian kanban format).
+A single user (the maintainer or anyone forking this project). This is a personal productivity tool, not a multi-user product. Design decisions optimize for one person's workflow and existing data structures (specifically, the existing Obsidian kanban format).
 
 ## 4. Goals
 
@@ -47,11 +47,11 @@ A single user: Andre. This is a personal productivity tool, not a multi-user pro
 - **Not** a replacement for Obsidian, Google Tasks, or Google Calendar — the dashboard is a view + sync layer, not a new source of truth
 - **Not** a multi-user system — no auth beyond OAuth for personal Google accounts
 - **Not** a mobile-first app — desktop browser is the primary surface (mobile-friendly is a v4 nice-to-have)
-- **Not** a public/shareable artifact — runs locally on Andre's machine
+- **Not** a public/shareable artifact — runs locally on the user's machine
 
 ## 6. Success Criteria
 
-The MVP is successful when Andre:
+The MVP is successful when the user:
 1. Opens the dashboard at least once daily as part of his morning routine
 2. Uses the dashboard's "Mark Complete" action instead of editing the kanban directly (at least 50% of the time)
 3. Reports the daily XP progress bar as motivating rather than stressful
@@ -87,10 +87,10 @@ Detailed behavior lives in [SPEC.md](SPEC.md). High-level capabilities for v1:
 
 ## 9. Constraints
 
-- **Stack preference**: JavaScript / TypeScript ecosystem (Node + React) — leverages Andre's existing skills
+- **Stack preference**: JavaScript / TypeScript ecosystem (Node + React) — leverages the maintainer's existing skills
 - **Runtime**: Local-only. No cloud hosting. Local server + browser frontend.
 - **Source format**: Obsidian kanban plugin format must be preserved exactly when writing back (the plugin reads what we write)
-- **Authentication**: None for v1 (single-user, localhost-only). Future Google sources will use Andre's own OAuth client.
+- **Authentication**: None for v1 (single-user, localhost-only). Future Google sources will use the user's own OAuth client.
 - **Storage**: Flat files only (JSON, JSONL). No database in v1.
 
 ## 10. Roadmap

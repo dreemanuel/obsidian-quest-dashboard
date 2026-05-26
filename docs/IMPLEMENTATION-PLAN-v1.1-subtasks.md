@@ -1176,7 +1176,7 @@ cat > config/sources.json <<'JSON'
       "id": "obsidian",
       "adapter": "ObsidianAdapter",
       "config": {
-        "file": "/home/andre/Documents/_personal-projects/quest-dashboard/server/tests/fixtures/sample-board.md",
+        "file": "<repo-root>/server/tests/fixtures/sample-board.md",
         "vault": "TestVault"
       },
       "pollIntervalSec": 60

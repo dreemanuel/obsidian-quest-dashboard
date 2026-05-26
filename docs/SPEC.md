@@ -65,7 +65,7 @@ When no `#xpN` tag is present, base XP is derived from the source lane:
 |---|---|
 | Exact: `TO DO - TODAY !` | 30 |
 | Matches `/JOB SEARCH/i` (any lane containing this) | 25 |
-| `DEV - VENERA 🔺` or `DEV - CODAIC` | 20 |
+| `DEV - CLIENT-A 🔺` or `DEV - CLIENT-B` | 20 |
 | `DEV - PERSONAL` | 15 |
 | `TO DO - BACKBURNER` | 5 |
 | `DONE - REVIEW`, `Archive` | hidden (excluded from dashboard entirely) |
@@ -105,7 +105,7 @@ Applied in order; first match wins.
 |---|---|
 | Exact: `TO DO - TODAY !` | **Daily Quests** (featured at top of dashboard) |
 | Matches `/JOB SEARCH/i` | **Job Hunt** (merges 8 lanes into one) |
-| Matches `/^DEV - (.+)/` | uses the captured suffix as the category name (`DEV - VENERA 🔺` → **Venera**, `DEV - CODAIC` → **Codaic**, `DEV - PERSONAL` → **Personal Dev**) |
+| Matches `/^DEV - (.+)/` | uses the captured suffix as the category name (`DEV - CLIENT-A 🔺` → **Project A**, `DEV - CLIENT-B` → **Project B**, `DEV - PERSONAL` → **Personal Dev**) |
 | Exact: `TO DO - BACKBURNER` | **Side Quests** (rendered dimmed) |
 | Exact: `DONE - REVIEW`, `Archive` | hidden |
 | Fallback | use raw lane name as-is |
@@ -144,7 +144,7 @@ Consecutive days (ending today) where `daily XP > 0`. Reset by any zero-XP day.
 `data/xp-history.jsonl` — append-only JSONL, one event per line:
 
 ```json
-{"ts":"2026-05-18T14:30:00Z","questId":"obsidian:daily-todo:job-search-this-week:0","xp":35,"source":"obsidian","title":"Apply to 3 Support Adventure competitors"}
+{"ts":"2026-05-18T14:30:00Z","questId":"obsidian:daily-todo:job-search-this-week:0","xp":35,"source":"obsidian","title":"Apply to 3 Example Company competitors"}
 ```
 
 ### 6.2 First-Run Backfill
@@ -272,8 +272,8 @@ All under `config/`. Editable by hand. Server reads on startup; restart required
       "id": "obsidian",
       "adapter": "ObsidianAdapter",
       "config": {
-        "file": "/home/andre/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md",
-        "vault": "ObsMain"
+        "file": "/absolute/path/to/your/vault/Tasks/your-board.md",
+        "vault": "YourVaultName"
       },
       "pollIntervalSec": 60
     }

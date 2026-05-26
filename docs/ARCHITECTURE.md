@@ -12,17 +12,17 @@ This document covers the technical design: stack, project layout, sync adapter p
 
 | Layer | Choice | Why |
 |---|---|---|
-| Backend runtime | Node.js (LTS) | Andre's existing JS proficiency; one language across stack |
+| Backend runtime | Node.js (LTS) | the maintainer's existing JS proficiency; one language across stack |
 | Backend framework | Express | Minimal, well-known, sufficient for ~6 endpoints |
 | Frontend build | Vite | Fast dev server, modern, zero-config React setup |
-| Frontend framework | React | Andre's existing skill; component model fits dashboard cleanly |
+| Frontend framework | React | the maintainer's existing skill; component model fits dashboard cleanly |
 | Styling | Tailwind CSS + custom CSS | Tailwind for layout + utility; custom CSS for cyberpunk animations (scan-lines, glitch, neon) |
 | Storage | Flat files (JSON + JSONL) | No DB needed for personal single-user tool |
 | Markdown parsing | Custom parser (handwritten) | Obsidian kanban format is small and specific; off-the-shelf parsers are too generic |
 
 **Rejected alternatives**:
 - Next.js: overkill for a local-only app with no SSR/routing complexity
-- Python/Flask: doesn't leverage Andre's existing skills
+- Python/Flask: doesn't leverage the maintainer's existing skills
 - SQLite: unnecessary for the scale (single user, <1000 quests, append-only history)
 
 ## 2. Project Structure

@@ -30,7 +30,7 @@ npm start
 ## Features (v1)
 
 - Reads tasks from an Obsidian kanban-plugin board
-- Quests categorized (Daily, Job Hunt, Personal Dev, Codaic, Venera, Side Quests)
+- Quests categorized (Daily, Job Hunt, Personal Dev, Project B, Project A, Side Quests)
 - Auto XP scoring + `#xpN` tag override
 - Cyberpunk HUD UI with daily/weekly progress bars
 - Bidirectional sync: "Mark Complete" writes back to the kanban
