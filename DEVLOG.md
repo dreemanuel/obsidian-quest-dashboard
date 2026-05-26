@@ -129,6 +129,14 @@ Captured the full project arc to date in `DEVLOG.md` (this file) — chronologic
 
 Added `CLAUDE.md` at the project root codifying the rule "update DEVLOG.md after every non-cosmetic commit". Sister memory saved at `~/.claude/projects/.../memory/feedback_devlog_after_commit.md` so the same instruction loads at session start. Noted the upgrade path (PostToolUse hook via the `update-config` skill) for hard enforcement if the soft approach drifts.
 
+### Backend port collision (`000fb7f`)
+
+User opened `http://localhost:5274/` and saw "SYNC FAILURE: fetchQuests failed: 404". Root cause: another local project (Remix-based) had taken port 3000. The dashboard's Vite proxy was still forwarding `/api/*` to `localhost:3000`, hitting the Remix app, which returned its default 404 page (recognized by the `💿 Hey developer 👋` console-log string in the HTML).
+
+Fix: move our backend to **3274** (pairing nicely with the client's **5274**, same last 3 digits). Updated `server/index.js` default `PORT` and `client/vite.config.js` proxy target. Killed all orphaned quest-dashboard dev processes (an earlier `npm run dev` had left stale `node --watch` instances unable to acquire 3000 after Remix grabbed it). Restarted fresh.
+
+`config/sources.json` and the running Remix project on 3000 were untouched.
+
 ---
 
 ## Current state (2026-05-27)
@@ -136,7 +144,7 @@ Added `CLAUDE.md` at the project root codifying the rule "update DEVLOG.md after
 - **Branch**: `feature/v1-implementation` (45 commits ahead of `main`)
 - **Tests**: 95 server + 33 client = 128 passing
 - **Production build**: succeeds, ~155 KB JS + 12 KB CSS
-- **Dev URLs**: `http://localhost:5274/` (frontend), `http://localhost:3000/api/*` (backend)
+- **Dev URLs**: `http://localhost:5274/` (frontend), `http://localhost:3274/api/*` (backend)
 - **Source**: real Obsidian kanban at `~/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md`
 - **Backups**: pre-dashboard kanban backed up at `& DAILY TO DO.md.bak.pre-qd-20260525-184421` (21,215 bytes)
 - **Not yet done**:
