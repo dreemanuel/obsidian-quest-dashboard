@@ -86,3 +86,16 @@ describe('ObsidianAdapter — healthCheck', () => {
     expect(result.lastError).toBeDefined();
   });
 });
+
+describe('ObsidianAdapter — subtask sourceRef', () => {
+  test('objectives carry expectedTitle in their sourceRef', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const quests = await adapter.listQuests();
+    const parent = quests.find(q => q.title === 'Personal task');
+    expect(parent.objectives.length).toBeGreaterThan(0);
+    for (const obj of parent.objectives) {
+      expect(obj.sourceRef.expectedTitle).toBe(obj.title);
+      expect(obj.sourceRef.parentLine).toBe(parent.sourceRef.line);
+    }
+  });
+});

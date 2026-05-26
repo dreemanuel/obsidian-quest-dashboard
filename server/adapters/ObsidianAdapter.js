@@ -39,7 +39,7 @@ export class ObsidianAdapter extends SyncAdapter {
     const objectives = (task.objectives || []).map((obj, oIdx) => createQuest({
       id: `${id}:obj:${oIdx}`,
       sourceId: 'obsidian',
-      sourceRef: { file: this.file, line: obj.line, parentLine: task.line },
+      sourceRef: { file: this.file, line: obj.line, parentLine: task.line, expectedTitle: obj.title },
       title: obj.title,
       rawLane: lane.name,
       completed: obj.completed,
