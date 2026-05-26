@@ -159,6 +159,20 @@ Fix: move our backend to **3274** (pairing nicely with the client's **5274**, sa
 
 `config/sources.json` and the running Remix project on 3000 were untouched.
 
+### v1.2 onboarding — spec + plan (`dcfc4eb`, `a4c216c`)
+
+Brainstormed and committed the v1.2 design: a first-run onboarding wizard + reusable Settings page for adding/removing kanban sources via the UI, replacing the v1 hand-edit-JSON-and-restart flow.
+
+Locked design decisions:
+- **Custom server-side file/folder browser** (server exposes a path-listing endpoint constrained to `$HOME`; frontend builds the UI). Rejected text-input-only and File-System-Access-API approaches.
+- **Frontmatter `kanban-plugin: board` check** as the detection criterion when scanning a vault. Non-kanban `.md` files in the file browser render greyed out / unselectable.
+- **Both first-run AND Settings re-entry** via a ⚙ button in the header HUD. Same `OnboardingFlow` component for both modes.
+- **Vault name auto-detected** by walking up to the nearest `.obsidian/` ancestor; user can override per-source in the review step.
+- **Hot-reload of adapters** on save — no server restart. Aggregator gets a new `replaceAdapters` method.
+- **Server boot becomes resilient** to missing `config/sources.json` (currently fatal); empty config is valid first-run state.
+
+Spec: `docs/SPEC-v1.2-onboarding.md` (362 lines). Plan: `docs/IMPLEMENTATION-PLAN-v1.2-onboarding.md` (3,335 lines, 24 TDD tasks across 8 phases).
+
 ---
 
 ## Current state (2026-05-27)
