@@ -129,6 +129,12 @@ Captured the full project arc to date in `DEVLOG.md` (this file) — chronologic
 
 Added `CLAUDE.md` at the project root codifying the rule "update DEVLOG.md after every non-cosmetic commit". Sister memory saved at `~/.claude/projects/.../memory/feedback_devlog_after_commit.md` so the same instruction loads at session start. Noted the upgrade path (PostToolUse hook via the `update-config` skill) for hard enforcement if the soft approach drifts.
 
+### GitHub remote created (private, pending sanitization)
+
+Created **https://github.com/dreemanuel/obsidian-quest-dashboard** via `gh repo create` — **private** for now while personal content gets scrubbed. Both `main` (2 commits) and `feature/v1-implementation` (57 commits) pushed. SSH protocol, default branch `main`.
+
+Plan: stay private during the sanitization pass, then flip to public so others can fork-and-adapt the dashboard for their own kanban file. User wants the eventual public repo to be usable by anyone with an Obsidian kanban — but without exposing the original author's personal job-hunt list, project names, or vault path.
+
 ### Backend port collision (`000fb7f`)
 
 User opened `http://localhost:5274/` and saw "SYNC FAILURE: fetchQuests failed: 404". Root cause: another local project (Remix-based) had taken port 3000. The dashboard's Vite proxy was still forwarding `/api/*` to `localhost:3000`, hitting the Remix app, which returned its default 404 page (recognized by the `💿 Hey developer 👋` console-log string in the HTML).
