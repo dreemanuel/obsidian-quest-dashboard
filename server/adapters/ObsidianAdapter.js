@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { SyncAdapter, ConflictError } from './SyncAdapter.js';
-import { parseBoard, markLineComplete, titleMatches } from '../parsers/kanbanMarkdown.js';
+import { parseBoard, markLineComplete, titleMatches, areAllSubtasksComplete } from '../parsers/kanbanMarkdown.js';
 import { createLockManager } from '../core/lockManager.js';
 import { createQuest, computeObjectiveProgress } from '../core/questModel.js';
 
@@ -78,8 +78,28 @@ export class ObsidianAdapter extends SyncAdapter {
         throw new ConflictError('title_mismatch');
       }
       const today = new Date().toISOString().slice(0, 10);
-      lines[sourceRef.line] = markLineComplete(line, today);
+      const isSubtask = sourceRef.parentLine !== null && sourceRef.parentLine !== undefined;
+
+      if (!isSubtask) {
+        lines[sourceRef.line] = markLineComplete(line, today);
+        await fs.writeFile(this.file, lines.join('\n'));
+        return { parentCompleted: false };
+      }
+
+      // Subtask branch
+      lines[sourceRef.line] = markLineComplete(line); // no date stamp
+      const allDone = areAllSubtasksComplete(lines, sourceRef.parentLine);
+      let parentCompleted = false;
+      if (allDone) {
+        const parentLineText = lines[sourceRef.parentLine];
+        // Only complete parent if it's not already complete
+        if (parentLineText && /- \[ \]/.test(parentLineText)) {
+          lines[sourceRef.parentLine] = markLineComplete(parentLineText, today);
+          parentCompleted = true;
+        }
+      }
       await fs.writeFile(this.file, lines.join('\n'));
+      return { parentCompleted, parentLine: parentCompleted ? sourceRef.parentLine : null };
     } finally {
       await this.lockManager.release(this.file);
     }

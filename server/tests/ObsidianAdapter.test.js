@@ -99,3 +99,47 @@ describe('ObsidianAdapter — subtask sourceRef', () => {
     }
   });
 });
+
+describe('ObsidianAdapter — markComplete subtask branch', () => {
+  test('marking a subtask writes - [x] title without date stamp', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const quests = await adapter.listQuests();
+    const parent = quests.find(q => q.title === 'Personal task');
+    const subtask = parent.objectives.find(o => o.title === 'Subtask one');
+
+    const result = await adapter.markComplete(subtask.sourceRef);
+
+    const raw = await fs.readFile(workingFile, 'utf8');
+    expect(raw).toContain('- [x] Subtask one');
+    expect(raw).not.toMatch(/- \[x\] Subtask one ✅/);
+    // Subtask one is the only incomplete subtask, so parent IS transitively completed
+    expect(result.parentCompleted).toBe(true);
+  });
+
+  test('marking the LAST incomplete subtask also writes parent line with ✅ date', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const quests = await adapter.listQuests();
+    const parent = quests.find(q => q.title === 'Personal task');
+    // The fixture has Personal task with subtask one (incomplete) + subtask two (complete).
+    // So marking 'Subtask one' is the LAST incomplete one.
+    const lastIncomplete = parent.objectives.find(o => !o.completed);
+
+    const result = await adapter.markComplete(lastIncomplete.sourceRef);
+
+    const raw = await fs.readFile(workingFile, 'utf8');
+    expect(raw).toMatch(/- \[x\] Personal task ✅ \d{4}-\d{2}-\d{2}/);
+    expect(result.parentCompleted).toBe(true);
+    expect(result.parentLine).toBe(parent.sourceRef.line);
+  });
+
+  test('top-level markComplete behavior unchanged (returns parentCompleted: false)', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const quests = await adapter.listQuests();
+    const top = quests.find(q => q.title === 'First today task');
+
+    const result = await adapter.markComplete(top.sourceRef);
+    const raw = await fs.readFile(workingFile, 'utf8');
+    expect(raw).toMatch(/- \[x\] First today task ✅ \d{4}-\d{2}-\d{2}/);
+    expect(result.parentCompleted).toBe(false);
+  });
+});
