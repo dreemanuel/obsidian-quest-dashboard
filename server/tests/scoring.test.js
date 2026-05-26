@@ -5,9 +5,9 @@ describe('computeXp — base XP by lane', () => {
   const cases = [
     { lane: 'TO DO - TODAY !', title: 'foo', expected: 30 },
     { lane: '🔥 JOB SEARCH - THIS WEEK', title: 'foo', expected: 25 },
-    { lane: '📬 JOB SEARCH - SUPPORT ADVENTURE COMPETITORS', title: 'foo', expected: 25 },
-    { lane: 'DEV - VENERA 🔺', title: 'foo', expected: 20 },
-    { lane: 'DEV - CODAIC', title: 'foo', expected: 20 },
+    { lane: '📬 JOB SEARCH - COMPETITORS', title: 'foo', expected: 25 },
+    { lane: 'DEV - CLIENT-A 🔺', title: 'foo', expected: 20 },
+    { lane: 'DEV - CLIENT-B', title: 'foo', expected: 20 },
     { lane: 'DEV - PERSONAL', title: 'foo', expected: 15 },
     { lane: 'TO DO - BACKBURNER', title: 'foo', expected: 5 },
     { lane: 'Some Other Lane', title: 'foo', expected: 10 },
@@ -41,7 +41,7 @@ describe('computeXp — modifiers stack additively', () => {
     // base 25 (JOB SEARCH) + 10 (🔥) + 5 (⭐) + 5 (URGENT) = 45
     const { xp } = computeXp({
       title: '🔥 ⭐ URGENT Apply to Vercel',
-      rawLane: '🚀 JOB SEARCH - SAAS COMPANIES',
+      rawLane: '🚀 JOB SEARCH - COMPANIES',
     });
     expect(xp).toBe(45);
   });

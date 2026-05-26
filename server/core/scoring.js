@@ -1,8 +1,12 @@
+// Default XP rules. The lane patterns below are reasonable starting points
+// for a job-search / personal-dev kanban; adapt them to your own lanes.
+// Note: order matters — first match wins. Put more specific patterns above
+// broader ones (e.g., `DEV - PERSONAL` before the generic `/^DEV - /`).
 const BASE_XP_RULES = [
   { match: (lane) => lane === 'TO DO - TODAY !', xp: 30 },
   { match: (lane) => /JOB SEARCH/i.test(lane), xp: 25 },
-  { match: (lane) => lane === 'DEV - VENERA 🔺' || lane === 'DEV - CODAIC', xp: 20 },
   { match: (lane) => lane === 'DEV - PERSONAL', xp: 15 },
+  { match: (lane) => /^DEV - /.test(lane), xp: 20 },
   { match: (lane) => lane === 'TO DO - BACKBURNER', xp: 5 },
 ];
 

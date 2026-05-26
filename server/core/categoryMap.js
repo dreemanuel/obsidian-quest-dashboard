@@ -3,10 +3,10 @@ export const DEFAULT_RULES = [
   { test: (lane) => /JOB SEARCH/i.test(lane), map: () => ({ category: 'Job Hunt' }) },
   { test: (lane) => /^DEV - (.+)/.test(lane), map: (lane) => {
       const suffix = lane.match(/^DEV - (.+)/)[1].replace(/🔺/g, '').trim();
-      const name = suffix === 'PERSONAL' ? 'Personal Dev' :
-                   suffix === 'CODAIC' ? 'Codaic' :
-                   suffix === 'VENERA' ? 'Venera' :
-                   suffix;
+      // Default: PERSONAL → 'Personal Dev'; any other suffix becomes the
+      // category name as-is (e.g., `DEV - MYAPP` → category `MYAPP`).
+      // Override via config/categoryMap.json for friendlier names.
+      const name = suffix === 'PERSONAL' ? 'Personal Dev' : suffix;
       return { category: name };
     }
   },

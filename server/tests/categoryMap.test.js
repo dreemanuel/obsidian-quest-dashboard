@@ -5,10 +5,10 @@ describe('mapCategory — default rules', () => {
   const cases = [
     { lane: 'TO DO - TODAY !', expected: { category: 'Daily Quests', featured: true, hidden: false } },
     { lane: '🔥 JOB SEARCH - THIS WEEK', expected: { category: 'Job Hunt', featured: false, hidden: false } },
-    { lane: '📬 JOB SEARCH - SUPPORT ADVENTURE COMPETITORS', expected: { category: 'Job Hunt', featured: false, hidden: false } },
+    { lane: '📬 JOB SEARCH - COMPETITORS', expected: { category: 'Job Hunt', featured: false, hidden: false } },
     { lane: 'DEV - PERSONAL', expected: { category: 'Personal Dev', featured: false, hidden: false } },
-    { lane: 'DEV - CODAIC', expected: { category: 'Codaic', featured: false, hidden: false } },
-    { lane: 'DEV - VENERA 🔺', expected: { category: 'Venera', featured: false, hidden: false } },
+    { lane: 'DEV - CLIENT-B', expected: { category: 'CLIENT-B', featured: false, hidden: false } },
+    { lane: 'DEV - CLIENT-A 🔺', expected: { category: 'CLIENT-A', featured: false, hidden: false } },
     { lane: 'TO DO - BACKBURNER', expected: { category: 'Side Quests', featured: false, hidden: false } },
     { lane: 'DONE - REVIEW', expected: { hidden: true } },
     { lane: 'Archive', expected: { hidden: true } },
