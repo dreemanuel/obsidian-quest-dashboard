@@ -14,7 +14,7 @@ Started the day exploring whether to add a Google Tasks MCP server alongside the
 
 Key design choices locked in:
 
-- **Source**: `~/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md` (kanban-plugin board) for v1. Google Tasks → v2. Google Calendar → v3.
+- **Source**: a kanban-plugin board in an Obsidian vault (configurable via `config/sources.json`) for v1. Google Tasks → v2. Google Calendar → v3.
 - **Bidirectional sync from day one** (not just a read-only viewer). Marking a quest complete in the dashboard rewrites the kanban file.
 - **Sync adapter abstraction** baked into v1 even though only `ObsidianAdapter` exists. ~20% more upfront work; avoids a refactor when v2/v3 land.
 - **Local server + browser frontend** model (Node + Express backend, Vite + React + Tailwind frontend). One process per surface; communicate via JSON over HTTP. Localhost only.
@@ -61,7 +61,7 @@ The Remote Control orphan-tool-result issue hung a subagent during Task 5.1 (loc
 
 ### Real-world smoke against the actual kanban
 
-Backed up `& DAILY TO DO.md`, repointed `config/sources.json` from the test fixture to the real file, cleared `data/.backfilled-obsidian` + `xp-history.jsonl`, restarted server. Backend reported **103 quests parsed across 7 categories** (including one new lane `JWCE` that wasn't in the kanban at the time of brainstorm — fell through to fallback category mapping, rendered cleanly).
+Backed up the real kanban file, repointed `config/sources.json` from the test fixture to it, cleared `data/.backfilled-obsidian` + `xp-history.jsonl`, restarted server. Backend reported **103 quests parsed across 7 categories** (including one lane that wasn't in the kanban at brainstorm time — fell through to fallback category mapping, rendered cleanly).
 
 ### Bug: dev server only served the backend
 
@@ -133,7 +133,7 @@ Added `CLAUDE.md` at the project root codifying the rule "update DEVLOG.md after
 
 Created **https://github.com/dreemanuel/obsidian-quest-dashboard** via `gh repo create` — **private** for now while personal content gets scrubbed. Both `main` (2 commits) and `feature/v1-implementation` (57 commits) pushed. SSH protocol, default branch `main`.
 
-Plan: stay private during the sanitization pass, then flip to public so others can fork-and-adapt the dashboard for their own kanban file. User wants the eventual public repo to be usable by anyone with an Obsidian kanban — but without exposing the original author's personal job-hunt list, project names, or vault path.
+Plan: stay private during the sanitization pass, then flip to public so others can fork-and-adapt the dashboard for their own kanban file. Sanitization scope: genericize hardcoded lane defaults in `scoring.js` / `categoryMap.js`, replace personal file paths and project names in all design docs with placeholders, and revise DEVLOG entries that referenced specific personal context.
 
 ### Backend port collision (`000fb7f`)
 
@@ -151,8 +151,8 @@ Fix: move our backend to **3274** (pairing nicely with the client's **5274**, sa
 - **Tests**: 95 server + 33 client = 128 passing
 - **Production build**: succeeds, ~155 KB JS + 12 KB CSS
 - **Dev URLs**: `http://localhost:5274/` (frontend), `http://localhost:3274/api/*` (backend)
-- **Source**: real Obsidian kanban at `~/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md`
-- **Backups**: pre-dashboard kanban backed up at `& DAILY TO DO.md.bak.pre-qd-20260525-184421` (21,215 bytes)
+- **Source**: the maintainer's Obsidian kanban file (configured locally; not part of the repo)
+- **Backups**: always recommended — copy your kanban file to a timestamped `.bak` before the first dashboard write-back run
 - **Not yet done**:
   - v1.0.0 tag (waiting on user-validated end-to-end success)
   - Merge `feature/v1-implementation` → `main`
