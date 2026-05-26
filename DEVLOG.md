@@ -143,6 +143,14 @@ A dedicated `public-prep` branch hosted the sanitization work — 5 commits:
 
 Verified: 95 server + 33 client tests passing, production build clean, zero remaining personal-term mentions in tracked files. MIT LICENSE added. `public-prep` merged into `main` (fast-forward) and the repo flipped to **public**.
 
+### Discoverability: GitHub topics
+
+Applied 15 topics to the public repo for ecosystem discovery: `obsidian`, `obsidian-kanban`, `kanban`, `productivity`, `dashboard`, `gamification`, `rpg`, `cyberpunk`, `task-management`, `local-first`, `bidirectional-sync`, `markdown`, `react`, `nodejs`, `tailwindcss`. Leaves 5 slots open (of GitHub's 20-topic max).
+
+### Production validation
+
+User loaded their real Obsidian kanban (103 quests, 7 categories) and exercised the v1.1 subtask flow on a heavily-nested item ("Google CySec Tasks:" with 17 objectives). Parent's "Mark Complete" button correctly disabled with "COMPLETE ALL OBJECTIVES FIRST" helper; objective progress bar reflects 1/17 (one historically completed via Obsidian). Rolling-avg mode is already in effect from backfilled history (daily target dynamically computed from the past 7 days of XP) — confirms SPEC §5.2's "Day 7+" rolling baseline switch is firing correctly.
+
 ### Backend port collision (`000fb7f`)
 
 User opened `http://localhost:5274/` and saw "SYNC FAILURE: fetchQuests failed: 404". Root cause: another local project (Remix-based) had taken port 3000. The dashboard's Vite proxy was still forwarding `/api/*` to `localhost:3000`, hitting the Remix app, which returned its default 404 page (recognized by the `💿 Hey developer 👋` console-log string in the HTML).
