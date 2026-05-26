@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { parseBoard, markLineComplete, titleMatches } from '../parsers/kanbanMarkdown.js';
+import { parseBoard, markLineComplete, titleMatches, areAllSubtasksComplete } from '../parsers/kanbanMarkdown.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -89,5 +89,66 @@ describe('titleMatches', () => {
   });
   test('does not match different title', () => {
     expect(titleMatches('- [ ] Apply to Vercel', 'Apply to Netlify')).toBe(false);
+  });
+});
+
+describe('markLineComplete — optional date', () => {
+  test('without dateStr → writes `- [x] title` (no date stamp)', () => {
+    const line = '\t- [ ] Subtask one';
+    const updated = markLineComplete(line);
+    expect(updated).toBe('\t- [x] Subtask one');
+  });
+  test('with dateStr → still appends date (unchanged v1 behavior)', () => {
+    const line = '- [ ] Parent';
+    const updated = markLineComplete(line, '2026-05-25');
+    expect(updated).toBe('- [x] Parent ✅ 2026-05-25');
+  });
+});
+
+describe('areAllSubtasksComplete', () => {
+  test('returns true when every indented checkbox after parent is - [x]', () => {
+    const lines = [
+      '- [ ] Parent',
+      '\t- [x] one',
+      '\t- [x] two',
+      '',
+      '- [ ] Next top-level',
+    ];
+    expect(areAllSubtasksComplete(lines, 0)).toBe(true);
+  });
+  test('returns false when any indented checkbox is - [ ]', () => {
+    const lines = [
+      '- [ ] Parent',
+      '\t- [x] one',
+      '\t- [ ] two',
+      '- [ ] Next',
+    ];
+    expect(areAllSubtasksComplete(lines, 0)).toBe(false);
+  });
+  test('returns true when parent has no subtasks at all', () => {
+    const lines = [
+      '- [ ] Parent',
+      '',
+      '- [ ] Next',
+    ];
+    expect(areAllSubtasksComplete(lines, 0)).toBe(true);
+  });
+  test('stops scanning at the next top-level task line', () => {
+    const lines = [
+      '- [ ] Parent',
+      '\t- [x] one',
+      '- [ ] Other top-level',
+      '\t- [ ] other subtask',
+    ];
+    expect(areAllSubtasksComplete(lines, 0)).toBe(true);
+  });
+  test('stops scanning at a lane header (## ...)', () => {
+    const lines = [
+      '- [ ] Parent',
+      '\t- [x] one',
+      '## Next Lane',
+      '- [ ] something',
+    ];
+    expect(areAllSubtasksComplete(lines, 0)).toBe(true);
   });
 });

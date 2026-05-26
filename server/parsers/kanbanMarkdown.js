@@ -69,7 +69,8 @@ export function markLineComplete(line, dateStr) {
     throw err;
   }
   const cleanBody = body.replace(COMPLETION_DATE_RE, '').trim();
-  return `${indent}- [x] ${cleanBody} ✅ ${dateStr}`;
+  const datePart = dateStr ? ` ✅ ${dateStr}` : '';
+  return `${indent}- [x] ${cleanBody}${datePart}`;
 }
 
 export function titleMatches(line, expectedTitle) {
@@ -77,4 +78,19 @@ export function titleMatches(line, expectedTitle) {
   if (!match) return false;
   const body = match[3].replace(COMPLETION_DATE_RE, '').trim();
   return body === expectedTitle;
+}
+
+const LANE_HEADER_RE_LOCAL = /^##\s+(.+)$/;
+
+export function areAllSubtasksComplete(lines, parentLine) {
+  for (let i = parentLine + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (LANE_HEADER_RE_LOCAL.test(line)) break;
+    const taskMatch = line.match(TASK_LINE_RE);
+    if (!taskMatch) continue; // blank line, comment, etc.
+    const [, indent, mark] = taskMatch;
+    if (indent.length === 0) break; // next top-level task
+    if (mark !== 'x') return false;
+  }
+  return true;
 }
