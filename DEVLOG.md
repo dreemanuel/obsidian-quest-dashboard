@@ -123,11 +123,17 @@ Another local project also uses 5173 and has priority. Updated `client/vite.conf
 
 Backend remains on **3000**. The Vite → backend proxy is unchanged.
 
+### DEVLOG + project CLAUDE.md (`83e8fbb`, `782e5a5`)
+
+Captured the full project arc to date in `DEVLOG.md` (this file) — chronological entries from inception through v1.1 plus a "Known quirks / tech debt" section.
+
+Added `CLAUDE.md` at the project root codifying the rule "update DEVLOG.md after every non-cosmetic commit". Sister memory saved at `~/.claude/projects/.../memory/feedback_devlog_after_commit.md` so the same instruction loads at session start. Noted the upgrade path (PostToolUse hook via the `update-config` skill) for hard enforcement if the soft approach drifts.
+
 ---
 
 ## Current state (2026-05-27)
 
-- **Branch**: `feature/v1-implementation` (43 commits ahead of `main`)
+- **Branch**: `feature/v1-implementation` (45 commits ahead of `main`)
 - **Tests**: 95 server + 33 client = 128 passing
 - **Production build**: succeeds, ~155 KB JS + 12 KB CSS
 - **Dev URLs**: `http://localhost:5274/` (frontend), `http://localhost:3000/api/*` (backend)
