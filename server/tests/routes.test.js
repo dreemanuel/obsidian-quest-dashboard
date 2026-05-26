@@ -114,3 +114,70 @@ describe('GET /api/health', () => {
     }
   });
 });
+
+describe('POST /api/quests/:id/complete — subtasks (v1.1)', () => {
+  test('subtask ID resolves via nested lookup and writes subtask line', async () => {
+    const { app, tmpDir, aggregator } = await buildAppWithActions();
+    try {
+      const { quests } = await aggregator.collectAll();
+      const parent = quests.find(q => q.title === 'Personal task');
+      const subtask = parent.objectives.find(o => !o.completed);
+
+      const res = await request(app).post(`/api/quests/${encodeURIComponent(subtask.id)}/complete`);
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('completing the last incomplete subtask emits exactly ONE parent XP event', async () => {
+    const { app, tmpDir, aggregator, history } = await buildAppWithActions();
+    try {
+      const { quests } = await aggregator.collectAll();
+      const parent = quests.find(q => q.title === 'Personal task');
+      const lastIncomplete = parent.objectives.find(o => !o.completed);
+
+      const res = await request(app).post(`/api/quests/${encodeURIComponent(lastIncomplete.id)}/complete`);
+      expect(res.status).toBe(200);
+      expect(res.body.parentCompleted).toBe(true);
+      expect(res.body.xpAwarded).toBe(parent.xp);
+
+      const events = await history.readAll();
+      const parentEvents = events.filter(e => e.questId === parent.id);
+      expect(parentEvents).toHaveLength(1);
+      expect(parentEvents[0].xp).toBe(parent.xp);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('POST /complete on parent with incomplete subtasks returns 422', async () => {
+    const { app, tmpDir, aggregator } = await buildAppWithActions();
+    try {
+      const { quests } = await aggregator.collectAll();
+      const parent = quests.find(q => q.title === 'Personal task');
+      // Personal task has 1 incomplete + 1 complete subtask in fixture → blocked.
+      const res = await request(app).post(`/api/quests/${encodeURIComponent(parent.id)}/complete`);
+      expect(res.status).toBe(422);
+      expect(res.body.error).toBe('subtasks_incomplete');
+      expect(res.body.remaining).toBeGreaterThan(0);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('parent with NO subtasks still completes normally (no 422)', async () => {
+    const { app, tmpDir, aggregator } = await buildAppWithActions();
+    try {
+      const { quests } = await aggregator.collectAll();
+      const noSubtaskQuest = quests.find(q => q.objectives.length === 0 && !q.completed);
+      const res = await request(app).post(`/api/quests/${encodeURIComponent(noSubtaskQuest.id)}/complete`);
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.parentCompleted).toBeFalsy();
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
