@@ -29,21 +29,48 @@ export default function App() {
     return map;
   }, [categories, visibleQuests]);
 
+  const showToast = (kind, message, ms = 2500) => {
+    setToast({ kind, message });
+    setTimeout(() => setToast(null), ms);
+  };
+
   const handleComplete = async (quest) => {
     try {
-      await postComplete(quest.id);
+      const res = await postComplete(quest.id);
       setSelectedQuest(null);
-      setToast({ kind: 'success', message: `+${quest.xp} XP — ${quest.title}` });
+      showToast('success', `+${res.xpAwarded} XP — ${quest.title}`);
       await Promise.all([refetch(), refetchHistory()]);
-      setTimeout(() => setToast(null), 2500);
     } catch (err) {
       if (err.code === 'CONFLICT') {
         setSelectedQuest(null);
-        setToast({ kind: 'warn', message: 'Quest changed in source — refreshing…' });
+        showToast('warn', 'Quest changed in source — refreshing…');
         await refetch();
-        setTimeout(() => setToast(null), 2500);
+      } else if (err.code === 'SUBTASKS_INCOMPLETE') {
+        showToast('warn', `Complete all objectives first (${err.remaining} remaining)`);
       } else {
-        setToast({ kind: 'error', message: `Error: ${err.message}` });
+        showToast('error', `Error: ${err.message}`);
+      }
+    }
+  };
+
+  const handleObjectiveComplete = async (subtask) => {
+    try {
+      const res = await postComplete(subtask.id);
+      if (res.parentCompleted) {
+        setSelectedQuest(null);
+        showToast('success', `+${res.xpAwarded} XP — ${res.parent?.title ?? 'Quest complete'}`);
+        await Promise.all([refetch(), refetchHistory()]);
+      } else {
+        showToast('success', `Objective complete: ${subtask.title}`, 1500);
+        refetch();
+      }
+    } catch (err) {
+      if (err.code === 'CONFLICT') {
+        setSelectedQuest(null);
+        showToast('warn', 'Quest changed in source — refreshing…');
+        await refetch();
+      } else {
+        showToast('error', `Error: ${err.message}`);
       }
     }
   };
@@ -112,6 +139,7 @@ export default function App() {
           quest={selectedQuest}
           onClose={() => setSelectedQuest(null)}
           onComplete={handleComplete}
+          onObjectiveComplete={handleObjectiveComplete}
         />
       )}
 
