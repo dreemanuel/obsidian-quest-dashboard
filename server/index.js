@@ -14,7 +14,7 @@ import { backfillIfNeeded } from './core/backfill.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3274;
 
 const ADAPTER_REGISTRY = {
   ObsidianAdapter,
