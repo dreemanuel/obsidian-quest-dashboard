@@ -51,3 +51,20 @@ describe('fetchHistory', () => {
     expect(result.streak).toBe(3);
   });
 });
+
+describe('postComplete — 422 subtasks_incomplete', () => {
+  test('throws SUBTASKS_INCOMPLETE with remaining count', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: async () => ({ error: 'subtasks_incomplete', remaining: 3 }),
+    });
+    try {
+      await postComplete('q');
+      throw new Error('should have thrown');
+    } catch (err) {
+      expect(err.code).toBe('SUBTASKS_INCOMPLETE');
+      expect(err.remaining).toBe(3);
+    }
+  });
+});

@@ -18,6 +18,13 @@ export async function postComplete(questId) {
       err.code = 'CONFLICT';
       throw err;
     }
+    if (res.status === 422) {
+      const body = await res.json().catch(() => ({}));
+      const err = new Error('subtasks_incomplete');
+      err.code = 'SUBTASKS_INCOMPLETE';
+      err.remaining = body.remaining;
+      throw err;
+    }
     throw new Error(`postComplete failed: ${res.status}`);
   }
   return res.json();
