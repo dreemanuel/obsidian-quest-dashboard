@@ -4,8 +4,8 @@
       "id": "obsidian",
       "adapter": "ObsidianAdapter",
       "config": {
-        "file": "/home/andre/Documents/ObsMain/_TASKS & REMINDERS/& DAILY TO DO.md",
-        "vault": "ObsMain"
+        "file": "/absolute/path/to/your/Obsidian-Vault/Tasks/your-board.md",
+        "vault": "YourVaultName"
       },
       "pollIntervalSec": 60
     }
