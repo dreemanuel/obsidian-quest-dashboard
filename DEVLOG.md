@@ -141,7 +141,7 @@ Fix: move our backend to **3274** (pairing nicely with the client's **5274**, sa
 
 ## Current state (2026-05-27)
 
-- **Branch**: `feature/v1-implementation` (45 commits ahead of `main`)
+- **Branch**: `feature/v1-implementation` (57 commits ahead of `main`)
 - **Tests**: 95 server + 33 client = 128 passing
 - **Production build**: succeeds, ~155 KB JS + 12 KB CSS
 - **Dev URLs**: `http://localhost:5274/` (frontend), `http://localhost:3274/api/*` (backend)
