@@ -173,6 +173,32 @@ Locked design decisions:
 
 Spec: `docs/SPEC-v1.2-onboarding.md` (362 lines). Plan: `docs/IMPLEMENTATION-PLAN-v1.2-onboarding.md` (3,335 lines, 24 TDD tasks across 8 phases).
 
+### v1.2 onboarding — implementation shipped on `feature/v1.2-onboarding`
+
+23 implementation commits across the 24-task plan (Task 24 = final verification, no new code). All TDD: RED → GREEN → commit. Subagent-driven execution.
+
+Backend (`3f89e35` → `683c5ed`):
+- `pathGuard.assertPathSafe` — home-dir containment, symlink resolution, traversal rejection
+- `configWriter.writeSourcesConfig` — atomic `.tmp` + rename
+- `configLoader` resilience — empty sources when `sources.json` missing (instead of throwing)
+- `aggregator.replaceAdapters` — hot-reload without server restart
+- `vaultScanner` — frontmatter-based kanban detection + `inferVaultName` walk-up, with `.obsidian/` + hidden-dirs + `node_modules/` skips, 5000-file soft cap
+- 4 setup routes: `GET /status`, `GET /browse` (files + folders modes), `POST /scan-vault`, `POST /save-sources` (with validation, dedup, hot-reload)
+- Bootstrap: graceful empty-config boot + `setupNeeded` flag in `/api/quests` meta
+
+Client (`fc42725` → `941f9bc`):
+- `setupApi.js` wrappers + `useSetupStatus` hook
+- 9 onboarding components in `client/src/components/onboarding/`: `BrowserRow`, `ModePicker`, `ExistingSourcesList`, `FileBrowser`, `FolderBrowser`, `ScanProgress`, `ChecklistReview`, `ConfirmLoading`, `OnboardingFlow` (state-machine wizard shell)
+- `useQuests` updated to expose `setupNeeded`
+- `HeaderHUD` gets ⚙ Settings button
+- `App.jsx` conditionally renders `<OnboardingFlow>` when `setupNeeded` true OR Settings clicked; handles add + remove sources via the same flow
+
+Verified: 133 server + 64 client = 197 tests passing. Production build clean (170 KB JS / 13 KB CSS pre-gzip). Branch pushed to `origin/feature/v1.2-onboarding`. Browser smoke test pending user.
+
+Notable subagent self-corrections:
+- BrowserRow tests had `MyVault` entry colliding with `(vault)` badge in `getByText(/vault/i)` — renamed to `MyNotes`
+- FolderBrowser had the same collision — renamed to `MyKanban`
+
 ---
 
 ## Current state (2026-05-27)
