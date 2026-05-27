@@ -7,11 +7,11 @@ export function ModePicker({ onPickFiles, onPickVault }) {
       <p className="text-center opacity-70 text-sm mb-4">
         Choose how to find your kanban boards:
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col md:flex-row items-stretch gap-4">
         <button
           type="button"
           onClick={onPickFiles}
-          className="h-full p-6 border border-hud-border hover:border-hud-accent bg-hud-surface text-left"
+          className="flex-1 p-6 border border-hud-border hover:border-hud-accent bg-hud-surface text-left"
         >
           <p className="text-sm font-bold text-hud-accent uppercase tracking-widest mb-2">Pick specific file(s)</p>
           <p className="text-xs opacity-70">Navigate to one or more kanban .md files and pick them individually.</p>
@@ -19,7 +19,7 @@ export function ModePicker({ onPickFiles, onPickVault }) {
         <button
           type="button"
           onClick={onPickVault}
-          className="h-full p-6 border border-hud-border hover:border-hud-accent bg-hud-surface text-left"
+          className="flex-1 p-6 border border-hud-border hover:border-hud-accent bg-hud-surface text-left"
         >
           <p className="text-sm font-bold text-hud-accent uppercase tracking-widest mb-2">Scan a vault folder</p>
           <p className="text-xs opacity-70">Point at an Obsidian vault and we'll auto-detect every kanban board inside it.</p>
