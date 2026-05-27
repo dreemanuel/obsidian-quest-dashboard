@@ -33,5 +33,6 @@ export function useQuests() {
     };
   }, [refetch]);
 
-  return { ...data, loading, error, refetch };
+  const setupNeeded = data.meta?.setupNeeded === true;
+  return { ...data, loading, error, refetch, setupNeeded };
 }
