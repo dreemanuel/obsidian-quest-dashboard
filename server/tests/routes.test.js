@@ -211,3 +211,59 @@ describe('GET /api/quests — setupNeeded meta', () => {
     }
   });
 });
+
+describe('GET /api/history — dailyActivity (v1.3)', () => {
+  test('returns dailyActivity array of length 91', async () => {
+    const built = await buildApp();
+    built.app.use('/api/history', createHistoryRoute({ history: built.history, targets: { daily: 50, weekly: 250 } }));
+    try {
+      const res = await request(built.app).get('/api/history');
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body.dailyActivity)).toBe(true);
+      expect(res.body.dailyActivity).toHaveLength(91);
+    } finally {
+      await fs.rm(built.tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('dailyActivity entries are ordered oldest-first', async () => {
+    const built = await buildApp();
+    built.app.use('/api/history', createHistoryRoute({ history: built.history, targets: { daily: 50, weekly: 250 } }));
+    try {
+      const res = await request(built.app).get('/api/history');
+      const dates = res.body.dailyActivity.map(d => d.date);
+      const sorted = [...dates].sort();
+      expect(dates).toEqual(sorted);
+    } finally {
+      await fs.rm(built.tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('dailyActivity ends on the upcoming Saturday (or today if Saturday)', async () => {
+    const built = await buildApp();
+    built.app.use('/api/history', createHistoryRoute({ history: built.history, targets: { daily: 50, weekly: 250 } }));
+    try {
+      const res = await request(built.app).get('/api/history');
+      const last = res.body.dailyActivity[res.body.dailyActivity.length - 1];
+      const lastDate = new Date(`${last.date}T00:00:00`);
+      expect(lastDate.getDay()).toBe(6);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      expect(lastDate.getTime()).toBeGreaterThanOrEqual(today.getTime());
+    } finally {
+      await fs.rm(built.tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('dailyActivity zero-fills days with no XP events', async () => {
+    const built = await buildApp();
+    built.app.use('/api/history', createHistoryRoute({ history: built.history, targets: { daily: 50, weekly: 250 } }));
+    try {
+      const res = await request(built.app).get('/api/history');
+      const totals = res.body.dailyActivity.map(d => d.xp);
+      expect(totals.every(xp => xp === 0)).toBe(true);
+    } finally {
+      await fs.rm(built.tmpDir, { recursive: true, force: true });
+    }
+  });
+});

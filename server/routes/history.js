@@ -24,6 +24,19 @@ export function createHistoryRoute({ history, targets }) {
       const allEvents = await history.readAll();
       const totalDays = new Set(allEvents.map(e => e.ts.slice(0, 10))).size;
 
+      // v1.3 activity tracker: 91 days ending the upcoming Saturday (or today if Saturday).
+      const daysUntilSat = (6 - now.getDay() + 7) % 7;
+      const upcomingSat = new Date(startOfToday.getTime() + daysUntilSat * ONE_DAY_MS);
+      const upcomingSatEnd = new Date(upcomingSat.getTime() + ONE_DAY_MS - 1);
+      const windowStart = new Date(upcomingSat.getTime() - 90 * ONE_DAY_MS);
+      const dailyXpMap = await history.dailyXpByDate(windowStart, upcomingSatEnd);
+      const dailyActivity = [];
+      for (let i = 0; i < 91; i++) {
+        const d = new Date(windowStart.getTime() + i * ONE_DAY_MS);
+        const isoDay = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        dailyActivity.push({ date: isoDay, xp: dailyXpMap.get(isoDay) || 0 });
+      }
+
       res.json({
         today: { xp: todayXp, target: targets.daily },
         week: { xp: weekXp, target: targets.weekly },
@@ -31,6 +44,7 @@ export function createHistoryRoute({ history, targets }) {
         streak,
         totalDays,
         useRollingAvg: totalDays >= 7,
+        dailyActivity,
       });
     } catch (err) {
       next(err);
