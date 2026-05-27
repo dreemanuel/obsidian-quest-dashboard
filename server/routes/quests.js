@@ -6,7 +6,11 @@ export function createQuestsRoute({ aggregator }) {
   router.get('/', async (req, res, next) => {
     try {
       const result = await aggregator.collectAll();
-      res.json(result);
+      const setupNeeded = result.meta.sources.length === 0;
+      res.json({
+        ...result,
+        meta: { ...result.meta, setupNeeded },
+      });
     } catch (err) {
       next(err);
     }

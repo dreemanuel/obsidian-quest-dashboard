@@ -181,3 +181,33 @@ describe('POST /api/quests/:id/complete — subtasks (v1.1)', () => {
     }
   });
 });
+
+describe('GET /api/quests — setupNeeded meta', () => {
+  test('returns setupNeeded: true in meta when adapter list is empty', async () => {
+    const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'qd-empty-'));
+    try {
+      const historyFile = path.join(tmpDir, 'history.jsonl');
+      const history = createHistoryStore(historyFile);
+      const aggregator = createAggregator([], history);
+      const app = express();
+      app.use('/api/quests', createQuestsRoute({ aggregator }));
+      const res = await request(app).get('/api/quests');
+      expect(res.status).toBe(200);
+      expect(res.body.meta.setupNeeded).toBe(true);
+      expect(res.body.quests).toEqual([]);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('returns setupNeeded: false (or missing) when at least one adapter present', async () => {
+    const built = await buildApp();
+    try {
+      const res = await request(built.app).get('/api/quests');
+      expect(res.status).toBe(200);
+      expect(res.body.meta.setupNeeded).toBeFalsy();
+    } finally {
+      await fs.rm(built.tmpDir, { recursive: true, force: true });
+    }
+  });
+});

@@ -9,6 +9,7 @@ import { createQuestsRoute } from './routes/quests.js';
 import { createActionsRoute } from './routes/actions.js';
 import { createHistoryRoute } from './routes/history.js';
 import { createHealthRoute } from './routes/health.js';
+import { createSetupRoute } from './routes/setup.js';
 import { backfillIfNeeded } from './core/backfill.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -23,7 +24,7 @@ const ADAPTER_REGISTRY = {
 async function main() {
   const { sources, targets } = await loadConfig(PROJECT_ROOT);
 
-  const adapters = sources.sources.map((s) => {
+  const adapters = (sources.sources || []).map((s) => {
     const Cls = ADAPTER_REGISTRY[s.adapter];
     if (!Cls) throw new Error(`Unknown adapter: ${s.adapter}`);
     return new Cls(s.config);
@@ -42,6 +43,7 @@ async function main() {
   const app = express();
   app.use(express.json());
 
+  app.use('/api/setup', createSetupRoute({ rootDir: PROJECT_ROOT, aggregator, adapterRegistry: ADAPTER_REGISTRY }));
   app.use('/api/quests', createQuestsRoute({ aggregator }));
   app.use('/api/quests', createActionsRoute({ aggregator, adaptersById, history }));
   app.use('/api/history', createHistoryRoute({ history, targets }));
