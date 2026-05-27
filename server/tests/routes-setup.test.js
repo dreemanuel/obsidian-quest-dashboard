@@ -129,3 +129,38 @@ describe('GET /api/setup/status', () => {
     }
   });
 });
+
+describe('POST /api/setup/scan-vault', () => {
+  test('returns kanban-marker files + auto-detected vault name', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const res = await request(app).post('/api/setup/scan-vault').send({ path: VAULT_FIXTURE });
+      expect(res.status).toBe(200);
+      expect(res.body.vaultName).toBe('vault-tree');
+      const paths = res.body.boards.map(b => b.relativePath).sort();
+      expect(paths).toEqual(['Tasks/board.md', 'Tasks/other-board.md']);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('returns 403 for path outside HOME', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const res = await request(app).post('/api/setup/scan-vault').send({ path: '/etc' });
+      expect(res.status).toBe(403);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('returns 400 for missing path body', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const res = await request(app).post('/api/setup/scan-vault').send({});
+      expect(res.status).toBe(400);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+});

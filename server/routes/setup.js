@@ -3,7 +3,7 @@ import path from 'path';
 import { promises as fs } from 'fs';
 import os from 'os';
 import { assertPathSafe } from '../core/pathGuard.js';
-import { isKanbanFile, inferVaultName } from '../core/vaultScanner.js';
+import { isKanbanFile, inferVaultName, scanVault } from '../core/vaultScanner.js';
 
 export function createSetupRoute({ rootDir, aggregator, adapterRegistry }) {
   const router = Router();
@@ -87,6 +87,35 @@ export function createSetupRoute({ rootDir, aggregator, adapterRegistry }) {
         entries: limited,
         truncated,
       });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post('/scan-vault', async (req, res, next) => {
+    try {
+      const inputPath = req.body && req.body.path;
+      if (!inputPath || typeof inputPath !== 'string') {
+        return res.status(400).json({ error: 'missing_path' });
+      }
+      let canonical;
+      try {
+        canonical = await assertPathSafe(inputPath);
+      } catch (err) {
+        if (err.code === 'PATH_OUT_OF_BOUNDS') {
+          return res.status(403).json({ error: 'path_out_of_bounds', message: err.message });
+        }
+        if (err.code === 'PATH_NOT_FOUND') {
+          return res.status(400).json({ error: 'path_not_found', message: err.message });
+        }
+        throw err;
+      }
+      const stat = await fs.stat(canonical);
+      if (!stat.isDirectory()) {
+        return res.status(400).json({ error: 'not_a_directory' });
+      }
+      const result = await scanVault(canonical);
+      res.json(result);
     } catch (err) {
       next(err);
     }
