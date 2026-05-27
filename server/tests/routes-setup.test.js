@@ -164,3 +164,81 @@ describe('POST /api/setup/scan-vault', () => {
     }
   });
 });
+
+describe('POST /api/setup/save-sources', () => {
+  test('writes config, rebuilds adapters, returns saved sources', async () => {
+    const { app, tmpDir, aggregator } = await buildAppWithSetup();
+    try {
+      const body = {
+        sources: [
+          { id: 'obsidian', adapter: 'ObsidianAdapter',
+            config: { file: BOARD_FIXTURE, vault: 'TestVault' }, pollIntervalSec: 60 },
+        ],
+      };
+      const res = await request(app).post('/api/setup/save-sources').send(body);
+      expect(res.status).toBe(200);
+      expect(res.body.saved).toBe(true);
+      expect(res.body.sourceCount).toBe(1);
+
+      // Verify config was written
+      const written = JSON.parse(await fs.readFile(path.join(tmpDir, 'config', 'sources.json'), 'utf8'));
+      expect(written.sources).toHaveLength(1);
+
+      // Verify aggregator now has an adapter
+      const result = await aggregator.collectAll();
+      expect(result.meta.sources[0].id).toBe('obsidian');
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('rejects sources with invalid kanban files (file does not exist)', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const body = {
+        sources: [
+          { id: 'obsidian', adapter: 'ObsidianAdapter',
+            config: { file: path.join(tmpDir, 'no-such-file.md'), vault: 'V' }, pollIntervalSec: 60 },
+        ],
+      };
+      const res = await request(app).post('/api/setup/save-sources').send(body);
+      expect(res.status).toBe(400);
+      expect(res.body.saved).toBe(false);
+      expect(res.body.errors[0].error).toBe('invalid_kanban');
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('deduplicates by canonical file path', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const body = {
+        sources: [
+          { id: 's1', adapter: 'ObsidianAdapter', config: { file: BOARD_FIXTURE, vault: 'A' }, pollIntervalSec: 60 },
+          { id: 's2', adapter: 'ObsidianAdapter', config: { file: BOARD_FIXTURE, vault: 'B' }, pollIntervalSec: 60 },
+        ],
+      };
+      const res = await request(app).post('/api/setup/save-sources').send(body);
+      expect(res.status).toBe(200);
+      expect(res.body.sourceCount).toBe(1);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('writes empty sources array (used when removing all sources)', async () => {
+    const { app, tmpDir, aggregator } = await buildAppWithSetup();
+    try {
+      const res = await request(app).post('/api/setup/save-sources').send({ sources: [] });
+      expect(res.status).toBe(200);
+      expect(res.body.sourceCount).toBe(0);
+      const written = JSON.parse(await fs.readFile(path.join(tmpDir, 'config', 'sources.json'), 'utf8'));
+      expect(written.sources).toEqual([]);
+      const result = await aggregator.collectAll();
+      expect(result.quests).toEqual([]);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+});

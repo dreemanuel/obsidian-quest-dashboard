@@ -4,6 +4,8 @@ import { promises as fs } from 'fs';
 import os from 'os';
 import { assertPathSafe } from '../core/pathGuard.js';
 import { isKanbanFile, inferVaultName, scanVault } from '../core/vaultScanner.js';
+import { writeSourcesConfig } from '../core/configWriter.js';
+import { parseBoard } from '../parsers/kanbanMarkdown.js';
 
 export function createSetupRoute({ rootDir, aggregator, adapterRegistry }) {
   const router = Router();
@@ -116,6 +118,84 @@ export function createSetupRoute({ rootDir, aggregator, adapterRegistry }) {
       }
       const result = await scanVault(canonical);
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.post('/save-sources', async (req, res, next) => {
+    try {
+      const incoming = req.body && Array.isArray(req.body.sources) ? req.body.sources : null;
+      if (incoming === null) {
+        return res.status(400).json({ error: 'missing_sources' });
+      }
+
+      const seen = new Set();
+      const valid = [];
+      const errors = [];
+
+      for (let i = 0; i < incoming.length; i++) {
+        const src = incoming[i];
+        if (!src.config || typeof src.config.file !== 'string') {
+          errors.push({ index: i, error: 'invalid_source', reason: 'missing config.file' });
+          continue;
+        }
+        let canonical;
+        try {
+          canonical = await assertPathSafe(src.config.file);
+        } catch (err) {
+          errors.push({ index: i, error: 'invalid_kanban', file: src.config.file, reason: err.message });
+          continue;
+        }
+        if (seen.has(canonical)) {
+          // dedupe — silently keep the first occurrence
+          continue;
+        }
+        seen.add(canonical);
+
+        try {
+          const raw = await fs.readFile(canonical, 'utf8');
+          const board = parseBoard(raw);
+          if (!board.lanes || board.lanes.length === 0) {
+            errors.push({ index: i, error: 'invalid_kanban', file: canonical, reason: 'no lanes found' });
+            continue;
+          }
+        } catch (err) {
+          errors.push({ index: i, error: 'invalid_kanban', file: canonical, reason: err.message });
+          continue;
+        }
+
+        valid.push({
+          ...src,
+          config: { ...src.config, file: canonical },
+        });
+      }
+
+      if (errors.length > 0) {
+        return res.status(400).json({ saved: false, errors });
+      }
+
+      // Atomic write
+      await writeSourcesConfig(rootDir, valid);
+
+      // Hot-reload adapters
+      const newAdapters = valid.map(s => {
+        const Cls = adapterRegistry[s.adapter];
+        if (!Cls) throw new Error(`Unknown adapter: ${s.adapter}`);
+        return new Cls(s.config);
+      });
+      aggregator.replaceAdapters(newAdapters);
+
+      res.json({
+        saved: true,
+        sourceCount: valid.length,
+        sources: valid.map(s => ({
+          id: s.id,
+          adapter: s.adapter,
+          file: s.config.file,
+          vault: s.config.vault,
+        })),
+      });
     } catch (err) {
       next(err);
     }
