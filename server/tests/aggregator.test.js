@@ -93,3 +93,33 @@ describe('aggregator — completion diff', () => {
     expect(eventsAfterSecond[0].title).toBe('First today task');
   });
 });
+
+describe('aggregator — replaceAdapters', () => {
+  test('replaces the adapter list and clears completion-diff state', async () => {
+    const adapter = new ObsidianAdapter({ file: workingFile, vault: 'TestVault' });
+    const history = createHistoryStore(historyFile);
+    const agg = createAggregator([adapter], history);
+
+    // First call seeds the snapshot
+    const r1 = await agg.collectAll();
+    expect(r1.quests.length).toBeGreaterThan(0);
+
+    // Replace with empty list
+    agg.replaceAdapters([]);
+    const r2 = await agg.collectAll();
+    expect(r2.quests).toEqual([]);
+    expect(r2.meta.sources).toEqual([]);
+
+    // Externally mark a quest complete in the original fixture
+    let raw = await fs.readFile(workingFile, 'utf8');
+    raw = raw.replace('- [ ] First today task', '- [x] First today task ✅ 2026-05-27');
+    await fs.writeFile(workingFile, raw);
+
+    // Put adapter back; first call should re-seed snapshot WITHOUT firing
+    // a spurious completion event (the change happened while no adapter was active).
+    agg.replaceAdapters([adapter]);
+    await agg.collectAll();
+    const eventsAfter = await history.readAll();
+    expect(eventsAfter).toHaveLength(0);
+  });
+});

@@ -1,7 +1,8 @@
 import { computeXp, deriveFlags, stripXpTag } from './scoring.js';
 import { applyRules as mapCategory } from './categoryMap.js';
 
-export function createAggregator(adapters, historyStore) {
+export function createAggregator(initialAdapters, historyStore) {
+  let adapters = initialAdapters;
   let previousSnapshot = null;
 
   async function collectAll() {
@@ -48,7 +49,12 @@ export function createAggregator(adapters, historyStore) {
     };
   }
 
-  return { collectAll };
+  function replaceAdapters(newAdapters) {
+    adapters = newAdapters;
+    previousSnapshot = null;
+  }
+
+  return { collectAll, replaceAdapters };
 }
 
 const CATEGORY_ORDER = ['Daily Quests', 'Job Hunt', 'Personal Dev', 'Codaic', 'Venera', 'Side Quests'];
