@@ -220,7 +220,7 @@ describe('GET /api/history — dailyActivity (v1.3)', () => {
       const res = await request(built.app).get('/api/history');
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body.dailyActivity)).toBe(true);
-      expect(res.body.dailyActivity).toHaveLength(91);
+      expect(res.body.dailyActivity).toHaveLength(182);
     } finally {
       await fs.rm(built.tmpDir, { recursive: true, force: true });
     }
