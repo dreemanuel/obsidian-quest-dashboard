@@ -23,7 +23,7 @@ export function ActivityTracker({ dailyActivity, dailyTarget }) {
   const today = todayIso();
   return (
     <div
-      className="grid gap-[2px] w-max"
+      className="grid gap-[2px] w-max p-2 border border-hud-border bg-hud-surface/30"
       style={{
         gridAutoFlow: 'column',
         gridTemplateRows: 'repeat(7, 0.6rem)',
