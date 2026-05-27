@@ -2,6 +2,7 @@ import { ProgressBar } from './ProgressBar.jsx';
 import { StreakBadge } from './StreakBadge.jsx';
 import { ShowCompletedToggle } from './ShowCompletedToggle.jsx';
 import { SyncIndicator } from './SyncIndicator.jsx';
+import { ActivityTracker } from './ActivityTracker.jsx';
 
 export function HeaderHUD({ history, lastSyncAt, onRefresh, showCompleted, onToggleCompleted, onOpenSettings }) {
   const useRolling = history?.useRollingAvg;
@@ -55,6 +56,15 @@ export function HeaderHUD({ history, lastSyncAt, onRefresh, showCompleted, onTog
           </span>
         )}
       </div>
+
+      {history?.dailyActivity && (
+        <div className="mt-3">
+          <ActivityTracker
+            dailyActivity={history.dailyActivity}
+            dailyTarget={history.today?.target ?? 50}
+          />
+        </div>
+      )}
     </header>
   );
 }
