@@ -173,6 +173,25 @@ Locked design decisions:
 
 Spec: `docs/SPEC-v1.2-onboarding.md` (362 lines). Plan: `docs/IMPLEMENTATION-PLAN-v1.2-onboarding.md` (3,335 lines, 24 TDD tasks across 8 phases).
 
+### v1.3 activity tracker — shipped on `feature/v1.3-activity-tracker`
+
+GitHub-style 7×13 activity grid below the streak/rolling-avg line in the header HUD. 91 tiles spanning the last ~90 days (week-aligned, ending the upcoming Saturday). Each tile's opacity buckets relative to the daily XP target:
+- bucket 0 (no activity): `hud-border` at 30% opacity
+- bucket 1 (1–25% of target): `hud-accent` at 25%
+- bucket 2 (25–75%): `hud-accent` at 50%
+- bucket 3 (75–125%, around-goal): `hud-accent` at 75%
+- bucket 4 (>125%, goal smashed): `hud-accent` at full opacity
+
+Native `title` attribute on each tile shows `YYYY-MM-DD — N XP` (or `(future)` for tiles beyond today's date).
+
+4 commits across 5 plan tasks (Task 5 was verification only):
+- `470e20e` — `historyStore.dailyXpByDate(start, end)` aggregates XP per ISO date
+- `bf4492f` — `GET /api/history` extended with 91-entry `dailyActivity` array, oldest first, ending upcoming Saturday
+- `a591403` — `ActivityTracker` component (CSS grid with `gridAutoFlow: 'column'` + 7 explicit rows)
+- `53be54d` — wired into `HeaderHUD` with defensive `history?.dailyActivity &&` guard
+
+Verified: 141 server + 71 client = 212 tests passing. Production build clean (171 KB JS / 13 KB CSS pre-gzip).
+
 ### v1.2 onboarding — implementation shipped on `feature/v1.2-onboarding`
 
 23 implementation commits across the 24-task plan (Task 24 = final verification, no new code). All TDD: RED → GREEN → commit. Subagent-driven execution.
@@ -218,7 +237,7 @@ User browser-smoke-tested the onboarding flow and reported the two mode-pick car
 ## Current state (2026-05-27)
 
 - **Branch**: `feature/v1-implementation` (57 commits ahead of `main`)
-- **Tests**: 95 server + 33 client = 128 passing
+- **Tests**: 141 server + 71 client = 212 passing
 - **Production build**: succeeds, ~155 KB JS + 12 KB CSS
 - **Dev URLs**: `http://localhost:5274/` (frontend), `http://localhost:3274/api/*` (backend)
 - **Source**: the maintainer's Obsidian kanban file (configured locally; not part of the repo)
