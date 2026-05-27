@@ -199,6 +199,10 @@ Notable subagent self-corrections:
 - BrowserRow tests had `MyVault` entry colliding with `(vault)` badge in `getByText(/vault/i)` — renamed to `MyNotes`
 - FolderBrowser had the same collision — renamed to `MyKanban`
 
+### v1.2 polish (`fffba3e`)
+
+User browser-smoke-tested the onboarding flow and reported the two mode-pick cards had uneven heights — the shorter "Pick specific file(s)" card looked jarring next to the taller "Scan a vault folder" one. Root cause: grid cells stretched to match the taller card, but each button only sized to its own content. Fix: `h-full` on both `<button>` elements so they fill their grid cells; shorter card now has natural empty space below its body text.
+
 ---
 
 ## Current state (2026-05-27)
