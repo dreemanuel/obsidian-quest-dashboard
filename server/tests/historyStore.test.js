@@ -95,3 +95,55 @@ describe('historyStore — aggregations', () => {
     expect(await store.streakDays(new Date('2026-05-18T23:00:00Z'))).toBe(1);
   });
 });
+
+describe('historyStore — dailyXpByDate', () => {
+  test('sums XP per ISO date across events in the window', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendBatch([
+      { questId: 'a', xp: 10, ts: '2026-05-18T10:00:00Z', source: 'o', title: 'a' },
+      { questId: 'b', xp: 25, ts: '2026-05-18T15:30:00Z', source: 'o', title: 'b' },
+      { questId: 'c', xp: 30, ts: '2026-05-19T09:00:00Z', source: 'o', title: 'c' },
+    ]);
+    const map = await store.dailyXpByDate(
+      new Date('2026-05-18T00:00:00Z'),
+      new Date('2026-05-20T23:59:59Z')
+    );
+    expect(map.get('2026-05-18')).toBe(35);
+    expect(map.get('2026-05-19')).toBe(30);
+    expect(map.size).toBe(2);
+  });
+
+  test('returns empty Map when no events in range', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendEvent({ questId: 'q1', xp: 10, ts: '2026-01-01T10:00:00Z', source: 'o', title: 't' });
+    const map = await store.dailyXpByDate(
+      new Date('2026-05-01T00:00:00Z'),
+      new Date('2026-05-31T23:59:59Z')
+    );
+    expect(map.size).toBe(0);
+  });
+
+  test('excludes events outside the window', async () => {
+    const store = createHistoryStore(storePath);
+    await store.appendBatch([
+      { questId: 'before', xp: 10, ts: '2026-05-17T10:00:00Z', source: 'o', title: 'b' },
+      { questId: 'in', xp: 20, ts: '2026-05-18T10:00:00Z', source: 'o', title: 'i' },
+      { questId: 'after', xp: 30, ts: '2026-05-19T10:00:00Z', source: 'o', title: 'a' },
+    ]);
+    const map = await store.dailyXpByDate(
+      new Date('2026-05-18T00:00:00Z'),
+      new Date('2026-05-18T23:59:59Z')
+    );
+    expect(map.size).toBe(1);
+    expect(map.get('2026-05-18')).toBe(20);
+  });
+
+  test('returns empty Map when log file does not exist', async () => {
+    const store = createHistoryStore(storePath);
+    const map = await store.dailyXpByDate(
+      new Date('2026-05-01T00:00:00Z'),
+      new Date('2026-05-31T23:59:59Z')
+    );
+    expect(map.size).toBe(0);
+  });
+});

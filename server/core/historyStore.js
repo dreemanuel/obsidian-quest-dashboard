@@ -74,6 +74,20 @@ export function createHistoryStore(filePath) {
       }
       return streak;
     },
+
+    async dailyXpByDate(startDate, endDate) {
+      const events = await api.readAll();
+      const result = new Map();
+      const startMs = startDate.getTime();
+      const endMs = endDate.getTime();
+      for (const e of events) {
+        const ts = new Date(e.ts).getTime();
+        if (ts < startMs || ts > endMs) continue;
+        const isoDay = isoDate(new Date(e.ts));
+        result.set(isoDay, (result.get(isoDay) || 0) + (e.xp || 0));
+      }
+      return result;
+    },
   };
   return api;
 }
