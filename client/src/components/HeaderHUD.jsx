@@ -3,7 +3,7 @@ import { StreakBadge } from './StreakBadge.jsx';
 import { ShowCompletedToggle } from './ShowCompletedToggle.jsx';
 import { SyncIndicator } from './SyncIndicator.jsx';
 
-export function HeaderHUD({ history, lastSyncAt, onRefresh, showCompleted, onToggleCompleted }) {
+export function HeaderHUD({ history, lastSyncAt, onRefresh, showCompleted, onToggleCompleted, onOpenSettings }) {
   const useRolling = history?.useRollingAvg;
   const dailyTarget = useRolling ? (history.rollingAvg7Day?.daily || 1) : (history?.today?.target || 50);
   const weeklyTarget = useRolling ? (history.rollingAvg7Day?.weekly || 1) : (history?.week?.target || 250);
@@ -17,6 +17,16 @@ export function HeaderHUD({ history, lastSyncAt, onRefresh, showCompleted, onTog
         <div className="flex items-center gap-3">
           <SyncIndicator lastSyncAt={lastSyncAt} onRefresh={onRefresh} />
           <ShowCompletedToggle show={showCompleted} onToggle={onToggleCompleted} />
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              aria-label="Settings"
+              className="px-2 py-1 text-xs uppercase tracking-widest border border-hud-border text-hud-accent hover:border-hud-accent"
+            >
+              ⚙
+            </button>
+          )}
         </div>
       </div>
 
