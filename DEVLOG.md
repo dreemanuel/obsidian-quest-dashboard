@@ -194,6 +194,8 @@ Verified: 141 server + 71 client = 212 tests passing. Production build clean (17
 
 Post-merge polish (`e8fc07e`): the grid initially stretched to its parent's full width because `display: grid` is block-level and `gridAutoColumns: auto` let columns expand. Added explicit `gridAutoColumns: '0.6rem'` so column tracks match row tracks (both 2 px gaps), plus `w-max mx-auto` so the grid sizes to its natural ~150 px content width and centers in the HUD.
 
+Then expanded scope (`820f399`): user wanted ~180 days of depth. Bumped window 13 weeks → 26 weeks (91 → 182 tiles, still 7 rows). Dropped `mx-auto` so the grid left-aligns rather than centers — more in line with GitHub's contributions calendar layout.
+
 ### v1.2 onboarding — implementation shipped on `feature/v1.2-onboarding`
 
 23 implementation commits across the 24-task plan (Task 24 = final verification, no new code). All TDD: RED → GREEN → commit. Subagent-driven execution.
