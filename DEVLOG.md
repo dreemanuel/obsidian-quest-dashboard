@@ -199,6 +199,16 @@ Notable subagent self-corrections:
 - BrowserRow tests had `MyVault` entry colliding with `(vault)` badge in `getByText(/vault/i)` — renamed to `MyNotes`
 - FolderBrowser had the same collision — renamed to `MyKanban`
 
+### v1.2 production validation
+
+End-to-end browser smoke on the real Obsidian vault completed cleanly:
+- Onboarding wizard appeared on first-run (with `config/sources.json` moved aside)
+- User clicked "Scan a vault folder", navigated the folder browser to their real vault, picked it, hit "Scan →"
+- Scanner detected 2 kanban board files in the vault; user kept 1, unchecked the other in the review checklist
+- Confirm → save-sources POST returned 200 → adapters hot-reloaded → dashboard rendered with quests from the selected board
+
+Notable surface issue surfaced + fixed during testing: ModePicker card heights were uneven in Firefox/Zen specifically. Took three iterations (`fffba3e` h-full → `4ac58d9` flex-1 → `c92dbbe` button as flex container) because the underlying cause was a Firefox `<button>` quirk where buttons don't honor `align-items: stretch` unless they're themselves flex containers. Chromium showed equal heights from the first fix; Zen needed the third. Browser-cache stickiness in Zen (Ctrl+Shift+R didn't bust it) also slowed diagnosis.
+
 ### v1.2 polish (`fffba3e`)
 
 User browser-smoke-tested the onboarding flow and reported the two mode-pick cards had uneven heights — the shorter "Pick specific file(s)" card looked jarring next to the taller "Scan a vault folder" one. Root cause: grid cells stretched to match the taller card, but each button only sized to its own content. Fix: `h-full` on both `<button>` elements so they fill their grid cells; shorter card now has natural empty space below its body text.
