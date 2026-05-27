@@ -23,8 +23,12 @@ export function ActivityTracker({ dailyActivity, dailyTarget }) {
   const today = todayIso();
   return (
     <div
-      className="grid gap-[2px]"
-      style={{ gridAutoFlow: 'column', gridTemplateRows: 'repeat(7, 0.6rem)' }}
+      className="grid gap-[2px] w-max mx-auto"
+      style={{
+        gridAutoFlow: 'column',
+        gridTemplateRows: 'repeat(7, 0.6rem)',
+        gridAutoColumns: '0.6rem',
+      }}
     >
       {dailyActivity.map(({ date, xp }) => (
         <div
