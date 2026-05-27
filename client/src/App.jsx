@@ -1,18 +1,23 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuests } from './hooks/useQuests.js';
 import { useHistory } from './hooks/useHistory.js';
 import { useShowCompleted } from './hooks/useShowCompleted.js';
+import { useSetupStatus } from './hooks/useSetupStatus.js';
 import { HeaderHUD } from './components/HeaderHUD.jsx';
 import { CategorySection } from './components/CategorySection.jsx';
 import { QuestModal } from './components/QuestModal.jsx';
+import { OnboardingFlow } from './components/onboarding/OnboardingFlow.jsx';
 import { postComplete } from './lib/api.js';
+import { saveSources } from './lib/setupApi.js';
 
 export default function App() {
-  const { quests, categories, meta, loading, error, refetch } = useQuests();
+  const setup = useSetupStatus();
+  const { quests, categories, meta, loading, error, refetch, setupNeeded } = useQuests();
   const { history, refetch: refetchHistory } = useHistory();
   const { show: showCompleted, toggle: toggleCompleted } = useShowCompleted();
   const [selectedQuest, setSelectedQuest] = useState(null);
   const [toast, setToast] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const visibleQuests = useMemo(
     () => (showCompleted ? quests : quests.filter(q => !q.completed)),
@@ -75,7 +80,46 @@ export default function App() {
     }
   };
 
-  if (loading && quests.length === 0) {
+  const handleOnboardingComplete = useCallback(async () => {
+    setSettingsOpen(false);
+    await setup.refresh();
+    await refetch();
+  }, [setup, refetch]);
+
+  const handleRemoveSource = async (filePath) => {
+    try {
+      const remaining = setup.sources
+        .filter(s => s.file !== filePath)
+        .map(s => ({
+          id: s.id,
+          adapter: s.adapter || 'ObsidianAdapter',
+          config: { file: s.file, vault: s.vault },
+          pollIntervalSec: 60,
+        }));
+      await saveSources(remaining);
+      await setup.refresh();
+      await refetch();
+      showToast('success', 'Source removed');
+    } catch (err) {
+      showToast('error', `Error removing source: ${err.message}`);
+    }
+  };
+
+  const showOnboarding = (setupNeeded || settingsOpen) && !setup.loading;
+  const onboardingMode = settingsOpen ? 'settings' : 'first-run';
+
+  if (showOnboarding) {
+    return (
+      <OnboardingFlow
+        mode={onboardingMode}
+        existingSources={setup.sources}
+        onComplete={handleOnboardingComplete}
+        onRemoveSource={handleRemoveSource}
+      />
+    );
+  }
+
+  if ((loading || setup.loading) && quests.length === 0) {
     return <div className="p-8 text-hud-accent">INITIALIZING…</div>;
   }
 
@@ -97,6 +141,7 @@ export default function App() {
           onRefresh={refetch}
           showCompleted={showCompleted}
           onToggleCompleted={toggleCompleted}
+          onOpenSettings={() => setSettingsOpen(true)}
         />
         <div className="p-8 text-center text-hud-accent glow tracking-widest">
           ALL QUESTS COMPLETE — STANDBY FOR NEW OBJECTIVES
@@ -113,6 +158,7 @@ export default function App() {
         onRefresh={refetch}
         showCompleted={showCompleted}
         onToggleCompleted={toggleCompleted}
+        onOpenSettings={() => setSettingsOpen(true)}
       />
 
       {meta?.sources?.some(s => s.status === 'error') && (
