@@ -196,6 +196,8 @@ Post-merge polish (`e8fc07e`): the grid initially stretched to its parent's full
 
 Then expanded scope (`820f399`): user wanted ~180 days of depth. Bumped window 13 weeks → 26 weeks (91 → 182 tiles, still 7 rows). Dropped `mx-auto` so the grid left-aligns rather than centers — more in line with GitHub's contributions calendar layout.
 
+Added a HUD frame (`1f687f7`): `p-2 border border-hud-border bg-hud-surface/30` on the grid container to delineate the tracker as a distinct boxed area in the header, matching the rest of the HUD chrome.
+
 ### v1.2 onboarding — implementation shipped on `feature/v1.2-onboarding`
 
 23 implementation commits across the 24-task plan (Task 24 = final verification, no new code). All TDD: RED → GREEN → commit. Subagent-driven execution.
