@@ -33,6 +33,72 @@ async function buildAppWithSetup({ initialAdapters = [], sourcesOnDisk = [] } = 
   return { app, tmpDir, aggregator, history };
 }
 
+describe('GET /api/setup/browse', () => {
+  test('files mode lists subdirs + .md files with isKanban annotation', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const tasksDir = path.join(VAULT_FIXTURE, 'Tasks');
+      const res = await request(app).get(`/api/setup/browse?path=${encodeURIComponent(tasksDir)}&mode=files`);
+      expect(res.status).toBe(200);
+      expect(res.body.resolvedPath).toBe(tasksDir);
+      const files = res.body.entries.filter(e => e.kind === 'file');
+      expect(files.map(f => f.name).sort()).toEqual(['board.md', 'other-board.md']);
+      expect(files.every(f => f.isKanban === true)).toBe(true);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('folders mode lists subdirs only with hasObsidianMarker annotation', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const parentDir = path.dirname(VAULT_FIXTURE);
+      const res = await request(app).get(`/api/setup/browse?path=${encodeURIComponent(parentDir)}&mode=folders`);
+      expect(res.status).toBe(200);
+      const vaultEntry = res.body.entries.find(e => e.name === 'vault-tree');
+      expect(vaultEntry).toBeDefined();
+      expect(vaultEntry.kind).toBe('directory');
+      expect(vaultEntry.hasObsidianMarker).toBe(true);
+      const fileEntries = res.body.entries.filter(e => e.kind === 'file');
+      expect(fileEntries).toHaveLength(0);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('returns 403 for path outside HOME', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const res = await request(app).get('/api/setup/browse?path=%2Fetc&mode=files');
+      expect(res.status).toBe(403);
+      expect(res.body.error).toBe('path_out_of_bounds');
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('defaults to home directory when path omitted', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const res = await request(app).get('/api/setup/browse?mode=files');
+      expect(res.status).toBe(200);
+      expect(res.body.resolvedPath).toBe(await fs.realpath(os.homedir()));
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('returns 400 for invalid mode', async () => {
+    const { app, tmpDir } = await buildAppWithSetup();
+    try {
+      const res = await request(app).get('/api/setup/browse?mode=bogus');
+      expect(res.status).toBe(400);
+    } finally {
+      await fs.rm(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('GET /api/setup/status', () => {
   test('returns setupNeeded: true when no sources configured', async () => {
     const { app, tmpDir } = await buildAppWithSetup();
